@@ -4,7 +4,7 @@
 OUTPUT_FORMAT("elf32-i386", "elf32-i386", "elf32-i386")
 OUTPUT_ARCH(i386)
 ENTRY(_start)
-kernel_load_addr = 0x100000;
+kernel_load_addr = 0xF0100000;
 
 SECTIONS
 {
@@ -13,7 +13,7 @@ SECTIONS
 	/* AT(...) gives the load address of this section, which tells
 	   the boot loader where to load the kernel in physical memory */
 	PROVIDE(text_start = .);
-	.text : {
+	.text : AT(0x100000) {
 		*(.text .stub .text.* .gnu.linkonce.t.*)
 	}
 	PROVIDE(etext = .);	/* Define the 'etext' symbol to this value */

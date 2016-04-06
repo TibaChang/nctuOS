@@ -10,8 +10,6 @@
  * the %cr0, %cr4, and %eflags registers, and traps.
  */
 
-#define KSTKSIZE	(8*4096)   		// size of a kernel stack
-
 // Global descriptor numbers
 #define GD_KT     0x08     // kernel text
 #define GD_KD     0x10     // kernel data
