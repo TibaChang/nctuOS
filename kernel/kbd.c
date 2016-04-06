@@ -3,6 +3,7 @@
 */
 
 #include <inc/kbd.h>
+#include <inc/trap.h>
 #include <kernel/picirq.h>
 #include <inc/stdio.h>
 
@@ -112,8 +113,8 @@ static uint8_t *charcode[4] = {
 static int
 kbd_proc_data(void)
 {
-	int c;
-	uint8_t data;
+	volatile int c;
+	volatile uint8_t data;
 	static uint32_t shift;
 
 	if ((inb(KBSTATP) & KBS_DIB) == 0)
@@ -219,8 +220,10 @@ kbd_intr(void)
 void kbd_init(void)
 {
 	// Drain the kbd buffer so that Bochs generates interrupts.
+    cons.rpos = 0;
+    cons.wpos = 0;
 	kbd_intr();
-	irq_setmask_8259A(irq_mask_8259A & ~(1<<1));
+	irq_setmask_8259A(irq_mask_8259A & ~(1<<IRQ_KBD));
 }
 
 /* high-level console I/O */
