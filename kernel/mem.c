@@ -199,8 +199,6 @@ mem_init(void)
 	// Map VA range [IOPHYSMEM, EXTPHYSMEM) to PA range [IOPHYSMEM, EXTPHYSMEM)
     boot_map_region(kern_pgdir, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, (PTE_W) | (PTE_P));
 
-    boot_map_region(kern_pgdir, 0x7000, PGSIZE, 0x7000, (PTE_W) | (PTE_P));
-
 	// Check that the initial page directory has been set up correctly.
 	check_kern_pgdir();
 
