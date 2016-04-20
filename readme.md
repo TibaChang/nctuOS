@@ -41,6 +41,7 @@ To debug
 - `kernel/trap_entry.S` implement trap handler interface for system call
 - `kernel/mem.c` implement `setupkvm` used by each process creation
 - `kernel/sched.c` implement scheduler
+- `kernel/timer.c` implement timer_handler to support sleep
 
 ### Lab 4
 

@@ -50,7 +50,7 @@ struct Pseudodesc gdt_pd = {
 
 
 
-static struct Taskstate tss;
+static struct tss_struct tss;
 Task tasks[NR_TASKS];
 
 extern char bootstack[];
@@ -223,7 +223,7 @@ void task_init()
 	tss.ts_gs = GD_UD | 0x03;
 
 	/* Setup TSS in GDT */
-	gdt[GD_TSS0 >> 3] = SEG16(STS_T32A, (uint32_t)(&tss), sizeof(struct Taskstate), 0);
+	gdt[GD_TSS0 >> 3] = SEG16(STS_T32A, (uint32_t)(&tss), sizeof(struct tss_struct), 0);
 	gdt[GD_TSS0 >> 3].sd_s = 0;
 
 	/* Setup first task */

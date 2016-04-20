@@ -25,30 +25,16 @@ void timer_handler(struct Trapframe *tf)
 
   jiffies++;
 
-  /* Lab4: Check is need wakeup sleep task */
   extern Task tasks[];
 
   extern Task *cur_task;
 
   if (cur_task != NULL)
   {
-    /* Lab4: Check is need wakeup sleep task */
-    for (i = 0; i < NR_TASKS; i++)
-    {
-      if (tasks[i].state == TASK_SLEEP)
-      {
-        tasks[i].remind_ticks--;
-        if (tasks[i].remind_ticks <= 0)
-          tasks[i].state = TASK_RUNNABLE;
-      }
-    }
-    /* Lab4: Check cur_task->remind_ticks, if remind_ticks <= 0 then yield the task*/
-    cur_task->remind_ticks--;
-    if (cur_task->remind_ticks <= 0)
-    {
-      cur_task->state = TASK_RUNNABLE;
-      sched_yield();
-    }
+  /* TODO: Lab 5
+   * Check if it is needed to wakeup sleep task
+   * If remind_ticks <= 0, yield the task
+   */
   }
 }
 
