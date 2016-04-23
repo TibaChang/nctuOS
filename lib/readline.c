@@ -97,7 +97,7 @@ char *readline(const char *prompt)
           break;
         case KEY_DN:
           if (hist_curr != hist_tail)
-            hist_curr = (hist_curr == SHELL_HIST_MAX) ? 0 : hist_curr+1;
+            hist_curr = (hist_curr == SHELL_HIST_MAX-1) ? 0 : hist_curr+1;
 
           while (i --)
             cprintf("\b");
