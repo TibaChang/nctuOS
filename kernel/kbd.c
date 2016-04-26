@@ -19,8 +19,6 @@
 #define NUMLOCK		(1<<4)
 #define SCROLLLOCK	(1<<5)
 
-#define E0ESC		(1<<6)
-
 static uint8_t shiftcode[256] =
 {
   [0x1D] = CTL,
@@ -123,8 +121,6 @@ kbd_proc_data(void)
   data = inb(KBDATAP);
 
   if (data == 0xE0) {
-    // E0 escape character
-    shift |= E0ESC;
     data = inb(KBDATAP);
     if (data & 0x80)
       return 0;

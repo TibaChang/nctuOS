@@ -162,7 +162,11 @@ void shell()
     {
       strcpy(hist[hist_tail], buf);
       hist_tail = (hist_tail + 1) % SHELL_HIST_MAX;
-      hist_head = (hist_head == hist_tail) ? (hist_head + 1) % SHELL_HIST_MAX : hist_head;
+      if (hist_head == hist_tail)
+      {
+        hist_head = (hist_head + 1) % SHELL_HIST_MAX;
+        hist[hist_tail][0] = 0;
+      }
       hist_curr = hist_tail;
 
       if (runcmd(buf) < 0)

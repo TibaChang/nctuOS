@@ -1,7 +1,7 @@
 #ifndef SHELL_H
 #define SHELL_H
 
-#define SHELL_HIST_MAX 5
+#define SHELL_HIST_MAX 10
 #define BUF_LEN 1024
 
 struct Command {
