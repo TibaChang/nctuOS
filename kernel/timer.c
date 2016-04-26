@@ -32,8 +32,14 @@ void timer_handler(struct Trapframe *tf)
   if (cur_task != NULL)
   {
   /* TODO: Lab 5
-   * Check if it is needed to wakeup sleep task
-   * If remind_ticks <= 0, yield the task
+   * 1. Maintain the status of slept tasks
+   * 
+   * 2. Change the state of the task if needed
+   *
+   * 3. Maintain the time quantum of the current task
+   *
+   * 4. sched_yield() if the time is up for current task
+   *
    */
   }
 }

@@ -5,7 +5,7 @@
   do { env_pop_tf(&((ts)->tf)); } while(0)
 
 /* TODO: Lab5
-* Implement a simple round-robin scheduler
+* Implement a simple round-robin scheduler (Start with the next one)
 *
 * 1. You have to remember the task you picked last time.
 *
