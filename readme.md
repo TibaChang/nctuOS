@@ -4,6 +4,49 @@ A tiny OS that used for course OSDI in National Chiao Tung University, Computer 
 
 This OS only supports x86
 
+### Lab 6
+
+In this lab, you will learn about how to make os support symmertric multiprocessing (SMP) and simple scheduling policy for SMP.
+
+**Source Tree**
+
+`kernel/*`: Includes all the file implementation needed by kernel only.
+`lib/*`: Includes libraries that should be in user space.
+`inc/*`: Header files for user.
+`user/*`: Files for user program.
+`boot/*`: Files for booting the kernel.
+
+You can leverage `grep` to find out where to fill up to finish this lab.
+
+`$ grep -R TODO .`
+
+To run this kernel
+
+    $ make
+    $ make qemu
+
+To debug
+
+    $ make debug
+
+**New source to be added**
+- `kern/cpu.h`		Kernel-private definitions for multiprocessor support
+- `kern/mpconfig.c`	Code to read the multiprocessor configuration
+- `kern/mpentry.S`	Assembly-language entry code for non-boot CPUs
+- `kern/spinlock.h`	Kernel-private definitions for spin locks, including the big kernel lock
+- `kern/spinlock.c`	Kernel code implementing spin locks
+- `kern/lapic.c`	Kernel code driving the local APIC unit in each processor
+
+**Modifications to be made**
+- `inc/syscall.h` 	Implement `get_cid`
+- `kernel/main.c` 	Implement `boot_aps` and `mp_main` to support multiprocessor
+- `kernel/task.c` 	Implement `task_init_percpu` and modify variable cur_task, functions `sys_fork` `sys_kill` to support multiprocessor
+- `kernel/syscall.c` 	Implement `get_cid`
+- `kernel/sched.c`	Modify scheduler to support multiprocessor
+- `kernel/timer.c`	Modify `timer_handler` to support multiprocessor
+- `kernel/mem.c` 	Implement `mmio_boot_region`,`mem_init_mp` and modify page_init to support multiprocessor
+                        Modify `check_page_free_list`,`check_kern_pgdir` and `check_page` to check new feature
+
 ### Lab 5
 
 In this lab, you will learn about process management, basic scheduling and system calls.

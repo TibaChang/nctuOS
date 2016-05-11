@@ -5,6 +5,7 @@
 #include <inc/memlayout.h>
 #include <kernel/task.h>
 #include <kernel/mem.h>
+#include <kernel/cpu.h>
 
 // Global descriptor table.
 //
@@ -21,7 +22,7 @@
 // definition of gdt specifies the Descriptor Privilege Level (DPL)
 // of that descriptor: 0 for kernel and 3 for user.
 //
-struct Segdesc gdt[6] =
+struct Segdesc gdt[NCPU + 5] =
 {
 	// 0x0 - unused (always faults -- for trapping NULL far pointers)
 	SEG_NULL,
@@ -93,7 +94,7 @@ extern void sched_yield(void);
  *    and its schedule time quantum (remind_ticks).
  *
  * 6. Return the pid of the newly created task.
- *
+ 
  */
 int task_create()
 {
@@ -137,10 +138,18 @@ int task_create()
  *
  * HINT: You can refer to page_remove, ptable_remove, and pgdir_remove
  */
+
+
 static void task_free(int pid)
 {
 }
 
+// Lab6 TODO
+//
+// Modify it so that the task will be removed form cpu runqueue
+// ( we not implement signal yet so do not try to kill process
+// running on other cpu )
+//
 void sys_kill(int pid)
 {
 	if (pid > 0 && pid < NR_TASKS)
@@ -177,6 +186,13 @@ void sys_kill(int pid)
  * HINT: You should understand how system call return
  * it's return value.
  */
+
+//
+// Lab6 TODO:
+//
+// Modify it so that the task will disptach to different cpu runqueue
+// (please try to load balance, don't put all task into one cpu)
+//
 int sys_fork()
 {
   /* pid for newly created process */
@@ -212,6 +228,30 @@ void task_init()
 		tasks[i].state = TASK_FREE;
 
 	}
+	task_init_percpu();
+}
+
+// Lab6 TODO
+//
+// Please modify this function to:
+//
+// 1. init idle task for non-booting AP 
+//    (remember to put the task in cpu runqueue) 
+//
+// 2. init per-CPU Runqueue
+//
+// 3. init per-CPU system registers
+//
+// 4. init per-CPU TSS
+//
+void task_init_percpu()
+{
+	
+
+	int i;
+	extern int user_entry();
+	extern int idle_entry();
+	
 	// Setup a TSS so that we get the right stack
 	// when we trap to the kernel.
 	memset(&(tss), 0, sizeof(tss));
@@ -230,13 +270,13 @@ void task_init()
 	i = task_create();
 	cur_task = &(tasks[i]);
 
-  /* For user program */
-  setupvm(cur_task->pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
-  setupvm(cur_task->pgdir, (uint32_t)UDATA_start, UDATA_SZ);
-  setupvm(cur_task->pgdir, (uint32_t)UBSS_start, UBSS_SZ);
-  setupvm(cur_task->pgdir, (uint32_t)URODATA_start, URODATA_SZ);
-  cur_task->tf.tf_eip = (uint32_t)user_entry;
-	
+	/* For user program */
+	setupvm(cur_task->pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
+	setupvm(cur_task->pgdir, (uint32_t)UDATA_start, UDATA_SZ);
+	setupvm(cur_task->pgdir, (uint32_t)UBSS_start, UBSS_SZ);
+	setupvm(cur_task->pgdir, (uint32_t)URODATA_start, URODATA_SZ);
+	cur_task->tf.tf_eip = (uint32_t)user_entry;
+
 	/* Load GDT&LDT */
 	lgdt(&gdt_pd);
 
@@ -247,8 +287,4 @@ void task_init()
 	ltr(GD_TSS0);
 
 	cur_task->state = TASK_RUNNING;
-	
 }
-
-
-

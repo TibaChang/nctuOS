@@ -17,3 +17,17 @@ int user_entry()
   shell();
   for(;;){};
 }
+
+int idle_entry()
+{
+
+	asm volatile("movl %0,%%eax\n\t" \
+    "movw %%ax,%%ds\n\t" \
+    "movw %%ax,%%es\n\t" \
+    "movw %%ax,%%fs\n\t" \
+    "movw %%ax,%%gs" \
+    :: "i" (0x20 | 0x03)
+  );
+
+  for(;;){};
+}
