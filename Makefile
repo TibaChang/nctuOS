@@ -28,3 +28,6 @@ clean:
 	rm $(OBJDIR)/boot/*.o $(OBJDIR)/boot/boot.out $(OBJDIR)/boot/boot $(OBJDIR)/boot/boot.asm
 	rm $(OBJDIR)/kernel/*.o $(OBJDIR)/kernel/system* kernel.*
 	rm $(OBJDIR)/lib/*.o
+
+cscope:
+	cscope -Rbqf ./cscope.out
