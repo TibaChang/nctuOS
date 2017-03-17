@@ -16,6 +16,9 @@ static struct Trapframe *last_tf;
  *       function addresses can't be represented in relocation records.
  */
 struct Gatedesc idt[256] = { {0} };	/* create idt memory */
+struct Pseudodesc lidt_struct = {.pd_lim = (uint16_t)(sizeof(idt)-1) ,
+				 .pd_base = (uint32_t)idt
+				};
 extern void _timer_isr();
 extern void _kbd_isr();
 
@@ -119,7 +122,14 @@ trap_dispatch(struct Trapframe *tf)
    *       We prepared the keyboard handler and timer handler for you
    *       already. Please reference in kernel/kbd.c and kernel/timer.c
    */
-
+	if( tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER )	{
+		timer_handler();
+		return;
+	}
+	if( tf->tf_trapno == IRQ_OFFSET + IRQ_KBD )	{
+		kbd_intr();
+		return;
+	}	
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
 }
@@ -167,6 +177,6 @@ void trap_init()
 	/* Timer Trap setup */
 	SETGATE(idt[IRQ_OFFSET+IRQ_TIMER], 0, GD_KT, _timer_isr, 0);
   	/* Load IDT */
-	lidt((void*)&idt);
+	lidt(&lidt_struct);
 
 }
