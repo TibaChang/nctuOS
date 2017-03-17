@@ -42,17 +42,14 @@ _alltraps:
 	pushl %ds
 	pushl %es
 	pushal #Push EAX, ECX, EDX, EBX, original ESP, EBP, ESI, and EDI.
-	movl 	$GD_KD, %eax
-	movw 	%ax, %ds
-	movw 	%ax, %es
 	
 	pushl %esp # Pass a pointer which points to the Trapframe as an argument to default_trap_handler()
 	call default_trap_handler
 
 	popl %esp
+	popal #Pop EDI, ESI, EBP, EBX, EDX, ECX, and EAX.
 	popl %es
 	popl %ds
-	popal #Pop EDI, ESI, EBP, EBX, EDX, ECX, and EAX.
 
 	add $8, %esp # Cleans up the pushed error code and pushed ISR number
 	iret # pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP!
