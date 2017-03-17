@@ -15,7 +15,9 @@ static struct Trapframe *last_tf;
  *       Interrupt descriptor table must be built at run time because shifted
  *       function addresses can't be represented in relocation records.
  */
-
+struct Gatedesc idt[256] = { {0} };	/* create idt memory */
+extern void _timer_isr();
+extern void _kbd_isr();
 
 /* For debugging */
 static const char *trapname(int trapno)
@@ -161,7 +163,10 @@ void trap_init()
    */
 
 	/* Keyboard interrupt setup */
+	SETGATE(idt[IRQ_OFFSET+IRQ_KBD], 0, GD_KT, _kbd_isr, 0);
 	/* Timer Trap setup */
-  /* Load IDT */
+	SETGATE(idt[IRQ_OFFSET+IRQ_TIMER], 0, GD_KT, _timer_isr, 0);
+  	/* Load IDT */
+	lidt((void*)&idt);
 
 }

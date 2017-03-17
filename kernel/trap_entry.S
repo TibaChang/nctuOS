@@ -22,6 +22,8 @@
  *       The Trap number are declared in inc/trap.h which might come in handy
  *       when declaring interface for ISRs.
  */
+TRAPHANDLER_NOEC( _timer_isr, IRQ_OFFSET+IRQ_TIMER )
+TRAPHANDLER_NOEC( _kbd_isr, IRQ_OFFSET+IRQ_KBD )
 
 .globl default_trap_handler;
 _alltraps:
