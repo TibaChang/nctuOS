@@ -286,3 +286,17 @@ strtol(const char *s, char **endptr, int base)
 	return (neg ? -val : val);
 }
 
+
+int
+atoi(char *str)
+{
+	int res = 0;
+	while(*str != '\0')
+	{
+		res = res * 10 + (*str-'0');
+		str++;
+	}
+	return res;
+}
+
+
