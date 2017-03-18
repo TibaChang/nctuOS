@@ -12,6 +12,7 @@ SECTIONS
 
 	/* AT(...) gives the load address of this section, which tells
 	   the boot loader where to load the kernel in physical memory */
+	PROVIDE(text_start = .);
 	.text : {
 		*(.text .stub .text.* .gnu.linkonce.t.*)
 	}
@@ -42,9 +43,11 @@ SECTIONS
 	. = ALIGN(0x1000);
 
 	/* The data segment */
+	PROVIDE(data_start = .);
 	.data : {
 		*(.data)
 	}
+	PROVIDE(data_end = .);
 	.bss : {
 		*(.bss)
 	}
