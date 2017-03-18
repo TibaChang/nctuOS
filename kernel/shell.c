@@ -6,8 +6,8 @@
 extern uint32_t text_start;
 extern uint32_t etext;
 extern uint32_t data_start;
-extern uint32_t data_end;
 extern uint32_t end;
+extern uint32_t kernel_load_addr;
 
 struct Command {
 	const char *name;
@@ -42,10 +42,9 @@ int mon_kerninfo(int argc, char **argv)
    *       Use PROVIDE inside linker script and calculate the
    *       offset.
    */
-	cprintf("kernel code start at:%d ,and size is: %d bytes\n",(uint32_t)&text_start,((uint32_t)&etext - (uint32_t)&text_start));
-	cprintf("data section start at:%d , and size is:%d bytes\n",(uint32_t)&data_start,(uint32_t)&data_end-(uint32_t)&data_start);
-	cprintf("bss section start at:%d , and size is:%d bytes\n",(uint32_t)&data_end,(uint32_t)&end-(uint32_t)&data_end);
-	cprintf("Total global data takes %d bytes\n",(uint32_t)&end - (uint32_t)&data_end);
+	cprintf("Kernel code base start=0x%08x size = %d bytes\n",(uint32_t)&text_start,((uint32_t)&etext - (uint32_t)&text_start));
+	cprintf("Kernel data base start=0x%08x size = %d bytes\n",(uint32_t)&data_start,(uint32_t)&end - (uint32_t)&data_start);
+	cprintf("Kernel executable memory footprint: %d KB\n",((uint32_t)&end - (uint32_t)&kernel_load_addr)/1024);
 	return 0;
 }
 int print_tick(int argc, char **argv)
@@ -56,6 +55,11 @@ int print_tick(int argc, char **argv)
 
 int chgcolor(int argc, char **argv)
 {
+	if(argc != 2)
+	{
+		cprintf("Usage: $ chgcolor [number]\n");
+		return 0;
+	}
 	int fore_color = atoi(argv[1]);
 	settextcolor(fore_color,0x0);
 	cprintf("Change color %d!\n",fore_color);

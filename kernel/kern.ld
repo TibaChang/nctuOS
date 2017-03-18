@@ -47,7 +47,6 @@ SECTIONS
 	.data : {
 		*(.data)
 	}
-	PROVIDE(data_end = .);
 	.bss : {
 		*(.bss)
 	}
