@@ -68,5 +68,5 @@ gdt:
 # Note: You can reference lab3_reference page 13 for detail meaning
 #       of each bit of GDT register.
 gdtdesc: 
-	.word gdtdesc-gdt	# gdt limit
+	.word gdtdesc-gdt-1	# gdt limit
 	.long gdt	# gdt base
