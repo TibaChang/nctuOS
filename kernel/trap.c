@@ -21,6 +21,7 @@ struct Pseudodesc lidt_struct = {.pd_lim = (uint16_t)(sizeof(idt)-1) ,
 				};
 extern void _timer_isr();
 extern void _kbd_isr();
+extern void _pg_flt_trap();
 
 /* For debugging */
 static const char *trapname(int trapno)
@@ -105,6 +106,13 @@ print_regs(struct PushRegs *regs)
 	cprintf("  eax  0x%08x\n", regs->reg_eax);
 }
 
+void page_fault_handler()
+{
+	cprintf("Page fault at %p\n", rcr2());
+	while (1)
+		;
+}
+
 static void
 trap_dispatch(struct Trapframe *tf)
 {
@@ -129,7 +137,11 @@ trap_dispatch(struct Trapframe *tf)
 	if( tf->tf_trapno == IRQ_OFFSET + IRQ_KBD )	{
 		kbd_intr();
 		return;
-	}	
+	}
+	if( tf->tf_trapno == T_PGFLT) {
+		page_fault_handler();
+		return;
+	}
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
 }
@@ -146,6 +158,8 @@ void default_trap_handler(struct Trapframe *tf)
 	// Dispatch based on what type of trap occurred
 	trap_dispatch(tf);
 }
+
+
 
 
 void trap_init()
@@ -176,6 +190,8 @@ void trap_init()
 	SETGATE(idt[IRQ_OFFSET+IRQ_KBD], 0, GD_KT, _kbd_isr, 0);
 	/* Timer Trap setup */
 	SETGATE(idt[IRQ_OFFSET+IRQ_TIMER], 0, GD_KT, _timer_isr, 0);
+	/*Page Fault Trap setup*/
+	SETGATE(idt[T_PGFLT], 1, GD_KT, _pg_flt_trap, 0);
   	/* Load IDT */
 	lidt(&lidt_struct);
 
