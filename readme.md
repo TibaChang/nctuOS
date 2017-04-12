@@ -29,23 +29,6 @@ To debug
 
     $ make debug
 
-**New source to be added**
-- `kern/cpu.h`		Kernel-private definitions for multiprocessor support
-- `kern/mpconfig.c`	Code to read the multiprocessor configuration
-- `kern/mpentry.S`	Assembly-language entry code for non-boot CPUs
-- `kern/spinlock.h`	Kernel-private definitions for spin locks, including the big kernel lock
-- `kern/spinlock.c`	Kernel code implementing spin locks
-- `kern/lapic.c`	Kernel code driving the local APIC unit in each processor
-
-**Modifications to be made**
-- `inc/syscall.h` 	Implement `get_cid`
-- `kernel/main.c` 	Implement `boot_aps` and `mp_main` to support multiprocessor
-- `kernel/task.c` 	Implement `task_init_percpu` and modify variable cur_task, functions `sys_fork` `sys_kill` to support multiprocessor
-- `kernel/syscall.c` 	Implement `get_cid`
-- `kernel/sched.c`	Modify scheduler to support multiprocessor
-- `kernel/timer.c`	Modify `timer_handler` to support multiprocessor
-- `kernel/mem.c` 	Implement `mmio_boot_region`,`mem_init_mp` and modify page_init to support multiprocessor
-                        Modify `check_page_free_list`,`check_kern_pgdir` and `check_page` to check new feature
 
 ### Lab 5
 
