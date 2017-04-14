@@ -28,7 +28,7 @@ void scroll(void)
 
         /* Finally, we set the chunk of memory that occupies
         *  the last line of text to our 'blank' character */
-        memset (textmemptr + (25 - temp) * 80, blank, 80);
+        memset (textmemptr + (25 - temp) * 80, blank, 80 * 2);
         csr_y = 25 - 1;
     }
 }
@@ -58,7 +58,7 @@ void move_csr(void)
 }
 
 /* Clears the screen */
-void cls()
+void sys_cls()
 {
     unsigned short blank;
     int i;
@@ -70,7 +70,7 @@ void cls()
     /* Sets the entire screen to spaces in our current
     *  color */
     for(i = 0; i < 25; i++)
-        memset (textmemptr + i * 80, blank, 80);
+        memset (textmemptr + i * 80, blank, 80 * 2);
 
     /* Update out virtual cursor, and then move the
     *  hardware cursor */
@@ -80,7 +80,7 @@ void cls()
 }
 
 /* Puts a single character on the screen */
-void putch(unsigned char c)
+void k_putch(unsigned char c)
 {
     unsigned short *where;
     unsigned short att = attrib << 8;
@@ -139,22 +139,19 @@ void putch(unsigned char c)
 }
 
 /* Uses the above routine to output a string... */
-void puts(unsigned char *text)
+void k_puts(unsigned char *text)
 {
     int i;
 
-    for (i = 0; i < strlen(text); i++)
+    for (i = 0; i < strlen((char*)text); i++)
     {
-        putch(text[i]);
+        k_putch(text[i]);
     }
 }
 
 /* Sets the forecolor and backcolor that we will use */
-void settextcolor(unsigned char forecolor, unsigned char backcolor)
+void sys_settextcolor(unsigned char forecolor, unsigned char backcolor)
 {
-    /* Lab3: Use this function */
-    /* Top 4 bit are the background, bottom 4 bytes
-    *  are the foreground color */
     attrib = (backcolor << 4) | (forecolor & 0x0F);
 }
 
@@ -162,5 +159,5 @@ void settextcolor(unsigned char forecolor, unsigned char backcolor)
 void init_video(void)
 {
     textmemptr = (unsigned short *)0xB8000;
-    cls();
+    sys_cls();
 }

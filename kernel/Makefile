@@ -3,19 +3,6 @@ GCC_LIB := $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
 KERN_LDFLAGS = -T kernel/kern.ld
 
-KERN_SRCFILES := kernel/entry.S \
-		kernel/main.c \
-		kernel/picirq.c \
-		kernel/kbd.c \
-		kernel/screen.c \
-		kernel/printf.c \
-		kernel/mem.c \
-		kernel/entrypgdir.c \
-		kernel/assert.c \
-		kernel/kclock.c \
-		lib/printfmt.c \
-		lib/string.c
-
 KERN_OBJS = kernel/entry.o \
 	kernel/main.o \
 	kernel/picirq.o \
@@ -28,11 +15,14 @@ KERN_OBJS = kernel/entry.o \
 	kernel/entrypgdir.o \
 	kernel/assert.o \
 	kernel/kclock.o \
-	kernel/shell.o \
 	kernel/timer.o \
-	lib/printfmt.o \
-	lib/readline.o \
-	lib/string.o
+	kernel/task.o \
+	kernel/syscall.o \
+	kernel/sched.o
+
+ULIB = lib/string.o lib/printf.o lib/printfmt.o lib/readline.o lib/console.o lib/syscall.o
+
+UPROG = user/shell.o user/main.o
 
 kernel/%.o: kernel/%.c
 	$(CC) $(CFLAGS) -Os -c -o $@ $<
@@ -40,8 +30,16 @@ kernel/%.o: kernel/%.c
 kernel/%.o: kernel/%.S
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-kernel/system: $(KERN_OBJS)
+lib/%.o: lib/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+user/%.o: user/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+	$(OBJDUMP) -S $@ > $@.asm
+
+
+kernel/system: $(KERN_OBJS) $(ULIB) $(UPROG)
 	@echo + ld kernel/system
-	$(LD) $(KERN_LDFLAGS) $(KERN_OBJS) $(GCC_LIB) -o $@
+	$(LD) $(KERN_LDFLAGS) $(KERN_OBJS) -o $@
 	$(OBJDUMP) -S $@ > $@.asm
 	$(NM) -n $@ > $@.sym

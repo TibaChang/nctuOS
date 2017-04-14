@@ -1,6 +1,7 @@
 /* Reference: http://www.osdever.net/bkerndev/Docs/pit.htm */
 #include <kernel/trap.h>
 #include <kernel/picirq.h>
+#include <kernel/task.h>
 #include <inc/mmu.h>
 #include <inc/x86.h>
 
@@ -10,29 +11,52 @@ static unsigned long jiffies = 0;
 
 void set_timer(int hz)
 {
-    int divisor = 1193180 / hz;       /* Calculate our divisor */
-    outb(0x43, 0x36);             /* Set our command byte 0x36 */
-    outb(0x40, divisor & 0xFF);   /* Set low byte of divisor */
-    outb(0x40, divisor >> 8);     /* Set high byte of divisor */
+  int divisor = 1193180 / hz;       /* Calculate our divisor */
+  outb(0x43, 0x36);             /* Set our command byte 0x36 */
+  outb(0x40, divisor & 0xFF);   /* Set low byte of divisor */
+  outb(0x40, divisor >> 8);     /* Set high byte of divisor */
 }
 
-/* 
- * Timer interrupt handler
- */
-void timer_handler()
+/* It is timer interrupt handler */
+void timer_handler(struct Trapframe *tf)
 {
-	jiffies++;
+  extern void sched_yield();
+  int i;
+
+  jiffies++;
+
+  extern Task tasks[];
+
+  extern Task *cur_task;
+
+  if (cur_task != NULL)
+  {
+  /* TODO: Lab 5
+   * 1. Maintain the status of slept tasks
+   * 
+   * 2. Change the state of the task if needed
+   *
+   * 3. Maintain the time quantum of the current task
+   *
+   * 4. sched_yield() if the time is up for current task
+   *
+   */
+  }
 }
 
-unsigned long get_tick()
+unsigned long sys_get_ticks()
 {
-	return jiffies;
+  return jiffies;
 }
 void timer_init()
 {
-	set_timer(TIME_HZ);
+  set_timer(TIME_HZ);
 
-	/* Enable interrupt */
-	irq_setmask_8259A(irq_mask_8259A & ~(1<<IRQ_TIMER));
+  /* Enable interrupt */
+  irq_setmask_8259A(irq_mask_8259A & ~(1<<IRQ_TIMER));
+
+  /* Register trap handler */
+  extern void TIM_ISR();
+  register_handler( IRQ_OFFSET + IRQ_TIMER, &timer_handler, &TIM_ISR, 0, 0);
 }
 

@@ -124,8 +124,6 @@ strfind(const char *s, char c)
 void *
 memset(void *v, int c, size_t n)
 {
-	char *p;
-
 	if (n == 0)
 		return v;
 	if ((int)v%4 == 0 && n%4 == 0) {

@@ -19,6 +19,13 @@ entry:
 	# physical addresses [0, 4MB).  This 4MB region will be
 	# sufficient until we set up our real page table in mem_init.
 
+    movl $0, %eax
+    movl $(RELOC(bss_start)), %edi
+    movl $(RELOC(end)), %ecx
+    subl %edi, %ecx
+    cld
+    rep stosb
+
 	# Load the physical address of entry_pgdir into cr3.  entry_pgdir
 	# is defined in entrypgdir.c.
 	movl	$(RELOC(entry_pgdir)), %eax
@@ -48,16 +55,19 @@ die:
 	jmp die
 
 .p2align 2                                # force 4 byte alignment
+
 kgdt:
-    SEG_NULL    # NULL segment
-    SEG(STA_X|STA_R, 0x0, 0xffffffff)   # Kernel code segment
-    SEG(STA_W, 0x0, 0xffffffff)         # Kernel data segment
+  SEG_NULL    # NULL segment
+
+  SEG(STA_X|STA_R, 0x0, 0xffffffff)   # Kernel code segment
+  SEG(STA_W, 0x0, 0xffffffff)         # Kernel data segment
 
 kgdtdesc:
-    .word   0x17        # sizeof(gdt) - 1
-    .long   kgdt
+  .word   0x17        # sizeof(gdt) - 1
+  .long   kgdt
 
 .bss
+  .align    PGSIZE
 	# There is kernel initial stack
 	.globl		bootstack
 bootstack:

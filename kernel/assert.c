@@ -4,6 +4,8 @@
 #include <inc/string.h>
 #include <inc/assert.h>
 
+extern int vprintk(const char *fmt, va_list ap);
+
 const char *panicstr;
 
 /*
@@ -23,13 +25,13 @@ _panic(const char *file, int line, const char *fmt,...)
 	__asm __volatile("cli; cld");
 
 	va_start(ap, fmt);
-	cprintf("kernel panic at %s:%d: ", file, line);
-	vcprintf(fmt, ap);
-	cprintf("\n");
+	printk("kernel panic at %s:%d: ", file, line);
+	vprintk(fmt, ap);
+	printk("\n");
 	va_end(ap);
 
 dead:
-	while (1);
+	while(1);
 }
 
 /* like panic, but don't */
@@ -39,8 +41,8 @@ _warn(const char *file, int line, const char *fmt,...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	cprintf("kernel warning at %s:%d: ", file, line);
-	vcprintf(fmt, ap);
-	cprintf("\n");
+	printk("kernel warning at %s:%d: ", file, line);
+	vprintk(fmt, ap);
+	printk("\n");
 	va_end(ap);
 }

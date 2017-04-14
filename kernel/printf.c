@@ -3,9 +3,15 @@
 #include <inc/types.h>
 #include <inc/stdio.h>
 
+static void
+putch(int ch, int *cnt)
+{
+	k_putch(ch); // in kernel/screen.c
+	(*cnt)++;
+}
 
 int
-vcprintf(const char *fmt, va_list ap)
+vprintk(const char *fmt, va_list ap)
 {
 	int cnt = 0;
 
@@ -14,13 +20,13 @@ vcprintf(const char *fmt, va_list ap)
 }
 
 int
-cprintf(const char *fmt, ...)
+printk(const char *fmt, ...)
 {
 	va_list ap;
 	int cnt;
 
 	va_start(ap, fmt);
-	cnt = vcprintf(fmt, ap);
+	cnt = vprintk(fmt, ap);
 	va_end(ap);
 
 	return cnt;

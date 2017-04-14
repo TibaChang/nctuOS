@@ -86,6 +86,10 @@ struct UTrapframe {
 	uintptr_t utf_esp;
 } __attribute__((packed));
 
+typedef void (*TrapHandler)(struct Trapframe *tf);
+
+void register_handler(int trapno, TrapHandler hnd, void (*trap_entry)(void), int isTrap, int dpl);
+
 #endif /* !__ASSEMBLER__ */
 
 #endif /* !JOS_INC_TRAP_H */
