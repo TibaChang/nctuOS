@@ -432,8 +432,8 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
     /* TODO */
   	uintptr_t currVA;
   	physaddr_t currPA;
-
-  	for (size_t currSize = 0; currSize < size ; currSize += PGSIZE)
+	size_t currSize;
+  	for (currSize = 0; currSize < size ; currSize += PGSIZE)
   	{
     	pte_t* pte;
     	currVA = va + currSize;
@@ -572,7 +572,7 @@ ptable_remove(pde_t *pgdir)
 void
 pgdir_remove(pde_t *pgdir)
 {
-  page_free(pa2page(PADDR(pgdir)));
+    page_free(pa2page(PADDR(pgdir)));
 }
 
 //
@@ -605,8 +605,18 @@ setupvm(pde_t *pgdir, uint32_t start, uint32_t size)
 pde_t *
 setupkvm()
 {
+  	struct PageInfo *p;
+  	pde_t *ret = NULL;
+  	if((p = page_alloc(ALLOC_ZERO)))
+  	{
+    	ret = page2kva(p);
+    	boot_map_region(ret, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), PTE_W);
+    	boot_map_region(ret, KSTACKTOP-KSTKSIZE, ROUNDUP(KSTKSIZE, PGSIZE), PADDR(bootstack), PTE_W);
+    	boot_map_region(ret, KERNBASE, ROUNDUP((0xFFFFFFFF - KERNBASE), PGSIZE), 0, PTE_W);
+    	boot_map_region(ret, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, PTE_W);
+  	}
+  	return ret; 
 }
-
 
 /* TODO: Lab 5
  * Please maintain num_free_pages yourself
