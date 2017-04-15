@@ -106,6 +106,7 @@ static int runcmd(char *buf)
 	cprintf("Unknown command '%s'\n", argv[0]);
 	return 0;
 }
+/*
 void shell()
 {
 	char *buf;
@@ -122,3 +123,4 @@ void shell()
 		}
 	}
 }
+*/

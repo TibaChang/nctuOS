@@ -260,7 +260,7 @@ int sys_fork()
 			}
 			PA_src = PTE_ADDR(*pte_src);
 			PA_dst = PTE_ADDR(*pte_dst);
-			memcpy((void*)PA_dst,(void*)PA_src,PGSIZE);
+			memcpy((void*)KADDR(PA_dst),(void*)KADDR(PA_src),PGSIZE);
 		}
 
     	/* Step 4: All user program use the same code for now */

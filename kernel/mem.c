@@ -34,6 +34,7 @@ static void
 i386_detect_memory(void)
 {
   size_t npages_extmem;
+  num_free_pages = 0;
 
   // Use CMOS calls to measure available base & extended memory.
   // (CMOS calls return results in kilobytes.)
