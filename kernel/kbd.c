@@ -169,7 +169,7 @@ static struct {
 
 // called by device interrupt routines to feed input characters
 // into the circular console input buffer.
-  static void
+static void
 cons_intr(int (*proc)(void))
 {
   int c;

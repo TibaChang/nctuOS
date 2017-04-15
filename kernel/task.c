@@ -122,9 +122,14 @@ int task_create()
 	for(pg = 0;pg < USR_STACK_SIZE;pg+=PGSIZE)
 	{
 		struct PageInfo * newPg = page_alloc(ALLOC_ZERO);
-		if(!newPg || !page_insert(ts->pgdir, newPg, (void*)(USTACKTOP-USR_STACK_SIZE+pg), PTE_W|PTE_U))
+		if(!newPg)
 		{
 			panic("Allocate page for user stack failed\n");
+			return -1;
+		}
+		if(page_insert(ts->pgdir, newPg, (void*)(USTACKTOP-USR_STACK_SIZE+pg), PTE_W|PTE_U))
+		{
+			panic("Insert page for user stack failed\n");
 			return -1;
 		}
 	}
