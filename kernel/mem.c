@@ -703,11 +703,24 @@ setupkvm()
 {
   	struct PageInfo *p;
   	pde_t *ret = NULL;
+	size_t i;
+	physaddr_t kstacktop_i;
+	extern uint32_t *lapic;
+	extern physaddr_t lapicaddr;
   	if((p = page_alloc(ALLOC_ZERO)))
   	{
     	ret = page2kva(p);
     	boot_map_region(ret, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), PTE_W);
     	boot_map_region(ret, KSTACKTOP-KSTKSIZE, ROUNDUP(KSTKSIZE, PGSIZE), PADDR(bootstack), PTE_W);
+		/*per CPU kernel stack*/
+		for(i = 0;i < NCPU;i++)
+		{
+			kstacktop_i = KSTACKTOP - i * (KSTKSIZE + KSTKGAP);
+			boot_map_region(ret, kstacktop_i - KSTKSIZE, KSTKSIZE, PADDR(percpu_kstacks[i]), PTE_W | PTE_P);
+		}
+		/*logical apic*/
+		boot_map_region(ret, lapic, PGSIZE, lapicaddr, PTE_W|PTE_PCD|PTE_PWT);
+
     	boot_map_region(ret, KERNBASE, ROUNDUP((0xFFFFFFFF - KERNBASE), PGSIZE), 0, PTE_W);
     	boot_map_region(ret, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, PTE_W);
   	}
