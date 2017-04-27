@@ -18,7 +18,11 @@ KERN_OBJS = kernel/entry.o \
 	kernel/timer.o \
 	kernel/task.o \
 	kernel/syscall.o \
-	kernel/sched.o
+	kernel/sched.o \
+	kernel/spinlock.o \
+	kernel/lapic.o \
+	kernel/mpentry.o \
+	kernel/mpconfig.o
 
 ULIB = lib/string.o lib/printf.o lib/printfmt.o lib/readline.o lib/console.o lib/syscall.o
 
