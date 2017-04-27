@@ -257,7 +257,13 @@ mem_init_mp(void)
 	//     Permissions: kernel RW, user NONE
 	// TODO:
 	// Lab6: Your code here:
-
+	physaddr_t kstacktop_i;
+	size_t i;
+	for(i = 0;i < NCPU;i++)
+	{
+		kstacktop_i = KSTACKTOP - i * (KSTKSIZE + KSTKGAP);
+		boot_map_region(kern_pgdir, kstacktop_i - KSTKSIZE, KSTKSIZE, PADDR(percpu_kstacks[i]), PTE_W | PTE_P);
+	}
 }
 
 // --------------------------------------------------------------
@@ -301,8 +307,15 @@ page_init(void)
 	 *
 	 */
     size_t i;
+	size_t ap_idx = PGNUM(MPENTRY_PADDR);
     for (i = 1; i < npages; i++) 
     {
+		if(i == ap_idx)
+		{
+      		pages[i].pp_ref = 1; 
+      		pages[i].pp_link = NULL;
+			continue;
+		}
         if (i < npages_basemem)
       	{    
       		pages[i].pp_ref = 0; 
@@ -317,7 +330,7 @@ page_init(void)
     	{    
       		pages[i].pp_ref = 1; 
       		pages[i].pp_link = NULL;
-    	}else 
+		}else
     	{    
       		pages[i].pp_ref = 0; 
       		pages[i].pp_link = page_free_list;
@@ -657,9 +670,12 @@ mmio_map_region(physaddr_t pa, size_t size)
 	//
 	// Lab6 TODO
 	// Your code here:
+	size_t round_size = ROUNDUP(size, PGSIZE);
+	uintptr_t old_base = base;
+	(base + round_size) > MMIOLIM ? panic("MMIO mapping exceed MMIOLIM\n") : (base += round_size);
 	
-
-	panic("mmio_map_region not implemented");
+	boot_map_region(kern_pgdir, old_base, ROUNDUP(size, PGSIZE), pa, PTE_W|PTE_PCD|PTE_PWT);
+	return old_base;
 }
 
 /* This is a simple wrapper function for mapping user program */
