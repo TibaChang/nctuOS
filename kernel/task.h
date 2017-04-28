@@ -41,7 +41,9 @@ typedef struct
 //
 typedef struct
 {
-
+	uint32_t pid_idx;
+	uint32_t pid_list[NR_TASKS];
+	uint32_t pid_count;
 } Runqueue;
 
 

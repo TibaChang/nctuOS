@@ -33,9 +33,7 @@ void timer_handler(struct Trapframe *tf)
 
   	extern Task tasks[];
 
-  	extern Task *cur_task;
-
-  	if (cur_task != NULL)
+  	if (thiscpu->cpu_task != NULL)
   	{
   	/* TODO: Lab 5
    	* 1. Maintain the status of slept tasks
@@ -60,11 +58,11 @@ void timer_handler(struct Trapframe *tf)
 			}
 		}
 		/*current task time-- */
-		cur_task->remind_ticks--;
+		thiscpu->cpu_task->remind_ticks--;
 		/*time up for current task*/
-		if (cur_task->remind_ticks <= 0)
+		if (thiscpu->cpu_task->remind_ticks <= 0)
 		{
-			cur_task->state = TASK_RUNNABLE;
+			thiscpu->cpu_task->state = TASK_RUNNABLE;
 			sched_yield();
 		}
   	}

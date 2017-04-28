@@ -45,8 +45,7 @@ volatile static int32_t last_task_pid = 0;
 void sched_yield(void)
 {
 	extern Task tasks[];
-	extern Task *cur_task;
-	last_task_pid = cur_task->task_id;
+	last_task_pid = bootcpu->cpu_task->task_id;//FIXME:only use bootcpu
 	size_t next_pid = last_task_pid+1;
 	/*pick new task*/
 	while(1)
@@ -62,15 +61,15 @@ void sched_yield(void)
 		}
 		next_pid++;
 	}
-	/*assign new task*/
-	cur_task = &tasks[next_pid];
-	cur_task->state = TASK_RUNNING;
-	cur_task->remind_ticks = TIME_QUANT;
-	lcr3(PADDR(cur_task->pgdir));
+	/*assign new task*///FIXME
+	bootcpu->cpu_task = &tasks[next_pid];
+	bootcpu->cpu_task->state = TASK_RUNNING;
+	bootcpu->cpu_task->remind_ticks = TIME_QUANT;
+	lcr3(PADDR(bootcpu->cpu_task->pgdir));
 
 	/*record current task*/
 	last_task_pid = next_pid;
 
-	/*dispatch task*/
-	ctx_switch(cur_task);
+	/*dispatch task*///FIXME
+	ctx_switch(bootcpu->cpu_task);
 }
