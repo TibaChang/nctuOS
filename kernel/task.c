@@ -205,6 +205,23 @@ void sys_kill(int pid)
    	* and invoke the scheduler for yield
    	*/
   		tasks[pid].state = TASK_STOP;
+		size_t i;
+		for(i = 0;i < thiscpu->cpu_rq.pid_count;i++)
+		{
+			if(thiscpu->cpu_rq.pid_list[i] == pid)
+			{
+				for(i++;i < thiscpu->cpu_rq.pid_count;i++)
+				{
+					thiscpu->cpu_rq.pid_list[i-1] = thiscpu->cpu_rq.pid_list[i];
+				}
+				thiscpu->cpu_rq.pid_count--;
+				if(thiscpu->cpu_rq.pid_idx >= thiscpu->cpu_rq.pid_count)
+				{
+					thiscpu->cpu_rq.pid_idx = 0;
+				}
+				break;
+			}
+		}
   		task_free(pid);
     	sched_yield();
 	}
@@ -251,7 +268,7 @@ int sys_fork()
 	}
 	if ((uint32_t)thiscpu->cpu_task)
 	{
-		/*copy traf frame from parent*/
+		/*copy trap frame from parent*/
 		tasks[pid].tf = thiscpu->cpu_task->tf;
 
 		/*copy parent's stack to child*/
@@ -286,6 +303,24 @@ int sys_fork()
 		/*parent and child different from the return value*/
 		tasks[pid].tf.tf_regs.reg_eax = 0;
 		thiscpu->cpu_task->tf.tf_regs.reg_eax = pid;
+
+		/*Assign child to the lowest loading CPU*/
+		size_t target_cpu_id = 0;
+		extern int ncpu;
+		extern struct CpuInfo cpus[NCPU];
+		for(i = 0;i < ncpu;i++)
+		{
+			if(cpus[target_cpu_id].cpu_rq.pid_count > cpus[i].cpu_rq.pid_count)
+			{
+				target_cpu_id = i;
+			}
+		}
+		if(cpus[target_cpu_id].cpu_rq.pid_count >= sizeof(cpus[target_cpu_id].cpu_rq.pid_list))
+		{
+			panic("Total tasks exceed the system limit!\n");
+		}
+		cpus[target_cpu_id].cpu_rq.pid_list[cpus[target_cpu_id].cpu_rq.pid_count] = pid;
+		cpus[target_cpu_id].cpu_rq.pid_count++;
 	}
 	return pid;
 }
@@ -362,7 +397,7 @@ void task_init_percpu()
         thiscpu->cpu_task->state = TASK_RUNNING;
     } else {
         thiscpu->cpu_task->tf.tf_eip = (uint32_t)idle_entry;
-        thiscpu->cpu_task->state = TASK_FREE;
+        thiscpu->cpu_task->state = TASK_IDLE;
     }
 
     /* Setup run queue */

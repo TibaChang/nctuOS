@@ -13,6 +13,7 @@ typedef enum
 	TASK_RUNNING,
 	TASK_SLEEP,
 	TASK_STOP,
+	TASK_IDLE
 } TaskState;
 
 // Each task's user space
@@ -43,7 +44,7 @@ typedef struct
 {
 	uint32_t pid_idx;
 	uint32_t pid_list[NR_TASKS];
-	uint32_t pid_count;
+	uint32_t pid_count;/*total task in this cpu*/
 } Runqueue;
 
 

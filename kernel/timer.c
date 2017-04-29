@@ -29,10 +29,13 @@ void timer_handler(struct Trapframe *tf)
   	extern void sched_yield();
   	int i;
 
-  	jiffies++;
+	if(thiscpu->cpu_id == bootcpu->cpu_id)
+	{
+  		jiffies++;
+	}
+	lapic_eoi();/*Notify all CPUs to interrupt*/
 
   	extern Task tasks[];
-
   	if (thiscpu->cpu_task != NULL)
   	{
   	/* TODO: Lab 5
@@ -46,14 +49,16 @@ void timer_handler(struct Trapframe *tf)
    	*
    	*/
 		/*Managing sleeping task*/
-  		for(i = 0; i < NR_TASKS; i++)
+		size_t pid;
+  		for(i = 0; i < thiscpu->cpu_rq.pid_count; i++)
 		{
-			if(tasks[i].state == TASK_SLEEP)
+			pid = thiscpu->cpu_rq.pid_list[i];
+			if(tasks[pid].state == TASK_SLEEP)
 			{
-				tasks[i].remind_ticks--;
-				if (tasks[i].remind_ticks <= 0)
+				tasks[pid].remind_ticks--;
+				if (tasks[pid].remind_ticks <= 0)
 				{
-					tasks[i].state = TASK_RUNNABLE;
+					tasks[pid].state = TASK_RUNNABLE;
 				}
 			}
 		}

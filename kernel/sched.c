@@ -21,7 +21,6 @@
 * 4. CONTEXT SWITCH, leverage the macro ctx_switch(ts)
 *    Please make sure you understand the mechanism.
 */
-volatile static int32_t last_task_pid = 0;
 
 //
 // TODO: Lab6
@@ -45,31 +44,26 @@ volatile static int32_t last_task_pid = 0;
 void sched_yield(void)
 {
 	extern Task tasks[];
-	last_task_pid = bootcpu->cpu_task->task_id;//FIXME:only use bootcpu
-	size_t next_pid = last_task_pid+1;
-	/*pick new task*/
+	size_t next_pid;
+	/*pick new task in runqueue*/
 	while(1)
 	{
-		if(next_pid >= NR_TASKS)
+		if(++thiscpu->cpu_rq.pid_idx > thiscpu->cpu_rq.pid_count)
 		{
-			next_pid = 0;
+			thiscpu->cpu_rq.pid_idx = 0;
 		}
+		next_pid = thiscpu->cpu_rq.pid_list[thiscpu->cpu_rq.pid_idx];
 		if(tasks[next_pid].state == TASK_RUNNABLE)
 		{
-			//printk("next_pid=%d\n",next_pid);
 			break;
 		}
-		next_pid++;
 	}
-	/*assign new task*///FIXME
-	bootcpu->cpu_task = &tasks[next_pid];
-	bootcpu->cpu_task->state = TASK_RUNNING;
-	bootcpu->cpu_task->remind_ticks = TIME_QUANT;
-	lcr3(PADDR(bootcpu->cpu_task->pgdir));
+	/*assign new task*/
+	thiscpu->cpu_task = &tasks[next_pid];
+	thiscpu->cpu_task->state = TASK_RUNNING;
+	thiscpu->cpu_task->remind_ticks = TIME_QUANT;
+	lcr3(PADDR(thiscpu->cpu_task->pgdir));
 
-	/*record current task*/
-	last_task_pid = next_pid;
-
-	/*dispatch task*///FIXME
-	ctx_switch(bootcpu->cpu_task);
+	/*dispatch task*/
+	ctx_switch(thiscpu->cpu_task);
 }
