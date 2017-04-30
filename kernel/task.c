@@ -7,6 +7,11 @@
 #include <kernel/mem.h>
 #include <kernel/cpu.h>
 #include <kernel/spinlock.h>
+
+
+struct spinlock task_lock;
+
+
 // Global descriptor table.
 //
 // Set up global descriptor table (GDT) with separate segments for
@@ -171,7 +176,6 @@ int task_create()
  * HINT: You can refer to page_remove, ptable_remove, and pgdir_remove
  */
 
-
 static void task_free(int pid)
 {
 	lcr3(PADDR(kern_pgdir));
@@ -263,20 +267,16 @@ int sys_fork()
         memcpy( page2kva(a) , usr_stk ,PGSIZE);
     }
                         
-	if (thiscpu->cpu_task)
-	{
-		/* Step 4: All user program use the same code for now */
-		setupvm(tasks[pid].pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
-		setupvm(tasks[pid].pgdir, (uint32_t)UDATA_start, UDATA_SZ);
-		setupvm(tasks[pid].pgdir, (uint32_t)UBSS_start, UBSS_SZ);
-		setupvm(tasks[pid].pgdir, (uint32_t)URODATA_start, URODATA_SZ);
-	}
+	
+	/* Step 4: All user program use the same code for now */
+	setupvm(tasks[pid].pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
+	setupvm(tasks[pid].pgdir, (uint32_t)UDATA_start, UDATA_SZ);
+	setupvm(tasks[pid].pgdir, (uint32_t)UBSS_start, UBSS_SZ);
+	setupvm(tasks[pid].pgdir, (uint32_t)URODATA_start, URODATA_SZ);
 
 	/*assign to cpu with loading balance*/
-	int min = 100;
+	int min = bootcpu->cpu_rq.number;
 	int min_id;
-	int t_index;
-	int t_number;
 	int i;
 	for(i=0;i<ncpu;i++)
 	{	
@@ -286,10 +286,10 @@ int sys_fork()
 			min_id = cpus[i].cpu_id;
 		}
 	}
-	t_index = cpus[min_id].cpu_rq.index;
-	t_number = cpus[min_id].cpu_rq.number;
+	int t_index = cpus[min_id].cpu_rq.index;
+	int t_number = cpus[min_id].cpu_rq.number;
 	cpus[min_id].cpu_rq.task_rq[(t_index + t_number)%NR_TASKS] = &tasks[pid];
-	cpus[min_id].cpu_rq.number ++;
+	cpus[min_id].cpu_rq.number++;
 	tasks[pid].tf.tf_regs.reg_eax = 0;
 	return pid;
 }
@@ -329,7 +329,6 @@ void task_init()
 //
 // 4. init per-CPU TSS
 //
-struct spinlock task_lock;
 void task_init_percpu()
 {
 	int i;
@@ -345,12 +344,10 @@ void task_init_percpu()
 	thiscpu->cpu_tss.ts_ss0 = GD_KD;
 
 	int j;
-	thiscpu->cpu_rq.number = 0;
 	for(j=0;j<NR_TASKS;j++)
 	{
 		thiscpu->cpu_rq.task_rq[j] = NULL;
 	}
-	thiscpu->cpu_rq.flag = 0;	
 
 	// fs and gs stay in user data segment
 	thiscpu->cpu_tss.ts_fs = GD_UD | 0x03;
@@ -376,21 +373,18 @@ void task_init_percpu()
 		spin_lock(&task_lock);
 		thiscpu->cpu_task->tf.tf_eip = (uint32_t)idle_entry;
 		spin_unlock(&task_lock);
-		thiscpu->cpu_rq.number = 1;
-		thiscpu->cpu_rq.index = 0;
-		thiscpu->cpu_rq.task_rq[0] = thiscpu->cpu_task;
-		thiscpu->cpu_rq.flag = 1;
 	}
 	else
 	{
 		spin_lock(&task_lock);
 		thiscpu->cpu_task->tf.tf_eip = (uint32_t)user_entry;
 		spin_unlock(&task_lock);
-		thiscpu->cpu_rq.number = 1;
-		thiscpu->cpu_rq.task_rq[0] = thiscpu->cpu_task;
-		thiscpu->cpu_rq.index = 0;
 	}
+	thiscpu->cpu_rq.number = 1;
+	thiscpu->cpu_rq.index = 0;
+	thiscpu->cpu_rq.task_rq[0] = thiscpu->cpu_task;
 	thiscpu->cpu_task->state = TASK_RUNNING;
+
 	/* Load GDT&LDT */
 	lgdt(&gdt_pd);
 	lldt(0);

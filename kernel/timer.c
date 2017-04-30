@@ -27,14 +27,11 @@ void set_timer(int hz)
 void timer_handler(struct Trapframe *tf)
 {
   extern void sched_yield();
-  extern struct CpuInfo cpus[NCPU];
-  int f ;
-  f=cpunum();
+  extern Task tasks[];
   int i;
   jiffies++;
   lapic_eoi();
 
-  extern Task tasks[];
 
   /* 
    * TODO: Lab 5
@@ -48,31 +45,30 @@ void timer_handler(struct Trapframe *tf)
    *
    *
    */
-	for(i=0;i<NR_TASKS;i++)
+	for(i = 0;i < NR_TASKS;i++)
 	{
-		if(cpus[f].cpu_rq.task_rq[i]!=NULL)
+		if(thiscpu->cpu_rq.task_rq[i] != NULL)
 		{
-		switch( cpus[f].cpu_rq.task_rq[i]->state)
+			switch( thiscpu->cpu_rq.task_rq[i]->state )
 			{
-			case TASK_SLEEP:
-				cpus[f].cpu_rq.task_rq[i]->remind_ticks--;
-				if(cpus[f].cpu_rq.task_rq[i]->remind_ticks<=0)
-				{
-					cpus[f].cpu_rq.task_rq[i]->state = TASK_RUNNABLE;
-					cpus[f].cpu_rq.task_rq[i]->remind_ticks = TIME_QUANT;
-				}
-				break;
-			case TASK_RUNNING:
-				cpus[f].cpu_rq.task_rq[i]->remind_ticks --;
-				break;
+				case TASK_SLEEP:
+					thiscpu->cpu_rq.task_rq[i]->remind_ticks--;
+					if(thiscpu->cpu_rq.task_rq[i]->remind_ticks<=0)
+					{
+						thiscpu->cpu_rq.task_rq[i]->state = TASK_RUNNABLE;
+						thiscpu->cpu_rq.task_rq[i]->remind_ticks = TIME_QUANT;
+					}
+					break;
+				case TASK_RUNNING:
+					thiscpu->cpu_rq.task_rq[i]->remind_ticks --;
+					break;
 			}
 		}
 	}
-	if(cpus[f].cpu_task->remind_ticks<=0)
+	if(thiscpu->cpu_task->remind_ticks<=0)
 	{
 		sched_yield();
 	}
-	
 }
 
 unsigned long sys_get_ticks()
