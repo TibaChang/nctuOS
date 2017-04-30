@@ -26,51 +26,53 @@ void set_timer(int hz)
 //
 void timer_handler(struct Trapframe *tf)
 {
-  	extern void sched_yield();
-  	int i;
+  extern void sched_yield();
+  extern struct CpuInfo cpus[NCPU];
+  int f ;
+  f=cpunum();
+  int i;
+  jiffies++;
+  lapic_eoi();
 
-	if(thiscpu->cpu_id == bootcpu->cpu_id)
+  extern Task tasks[];
+
+  /* 
+   * TODO: Lab 5
+   * 1. Maintain the status of slept tasks
+   * 
+   * 2. Change the state of the task if needed
+   *
+   * 3. Maintain the time quantum of the current task
+   *
+   * 4. sched_yield() if the time is up for current task
+   *
+   *
+   */
+	for(i=0;i<NR_TASKS;i++)
 	{
-  		jiffies++;
-	}
-	lapic_eoi();/*Notify all CPUs to interrupt*/
-
-  	extern Task tasks[];
-  	if (thiscpu->cpu_task != NULL)
-  	{
-  	/* TODO: Lab 5
-   	* 1. Maintain the status of slept tasks
-   	* 
-   	* 2. Change the state of the task if needed
-   	*
-   	* 3. Maintain the time quantum of the current task
-   	*
-   	* 4. sched_yield() if the time is up for current task
-   	*
-   	*/
-		/*Managing sleeping task*/
-		size_t pid;
-  		for(i = 0; i < thiscpu->cpu_rq.pid_count; i++)
+		if(cpus[f].cpu_rq.task_rq[i]!=NULL)
 		{
-			pid = thiscpu->cpu_rq.pid_list[i];
-			if(tasks[pid].state == TASK_SLEEP)
+		switch( cpus[f].cpu_rq.task_rq[i]->state)
 			{
-				tasks[pid].remind_ticks--;
-				if (tasks[pid].remind_ticks <= 0)
+			case TASK_SLEEP:
+				cpus[f].cpu_rq.task_rq[i]->remind_ticks--;
+				if(cpus[f].cpu_rq.task_rq[i]->remind_ticks<=0)
 				{
-					tasks[pid].state = TASK_RUNNABLE;
+					cpus[f].cpu_rq.task_rq[i]->state = TASK_RUNNABLE;
+					cpus[f].cpu_rq.task_rq[i]->remind_ticks = TIME_QUANT;
 				}
+				break;
+			case TASK_RUNNING:
+				cpus[f].cpu_rq.task_rq[i]->remind_ticks --;
+				break;
 			}
 		}
-		/*current task time-- */
-		thiscpu->cpu_task->remind_ticks--;
-		/*time up for current task*/
-		if (thiscpu->cpu_task->remind_ticks <= 0)
-		{
-			thiscpu->cpu_task->state = TASK_RUNNABLE;
-			sched_yield();
-		}
-  	}
+	}
+	if(cpus[f].cpu_task->remind_ticks<=0)
+	{
+		sched_yield();
+	}
+	
 }
 
 unsigned long sys_get_ticks()

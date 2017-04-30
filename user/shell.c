@@ -158,7 +158,7 @@ int spinlocktest(int argc, char **argv)
     fork();
     fork();
     fork();
-    sleep(500);
+    sleep(100);
     cprintf("Pid=%d, Cid=%d\n", getpid(), getcid());
     /* task recycle */
     kill_self();

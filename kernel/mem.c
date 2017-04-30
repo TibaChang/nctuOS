@@ -9,6 +9,7 @@
 #include <kernel/mem.h>
 #include <kernel/kclock.h>
 #include <kernel/cpu.h>
+#include <kernel/spinlock.h>
 
 // These variables are set by i386_detect_memory()
 size_t                   npages;			// Amount of physical memory (in pages)
@@ -190,7 +191,7 @@ mem_init(void)
 	//     Permissions: kernel RW, user NONE
 	// Your code goes here:
     /* TODO */
-	boot_map_region(kern_pgdir, KSTACKTOP-KSTKSIZE, ROUNDUP(KSTKSIZE, PGSIZE), PADDR(bootstack), (PTE_W | PTE_P));
+	//boot_map_region(kern_pgdir, KSTACKTOP-KSTKSIZE, ROUNDUP(KSTKSIZE, PGSIZE), PADDR(bootstack), (PTE_W | PTE_P));
 
 	//////////////////////////////////////////////////////////////////////
 	// Map all of physical memory at KERNBASE.
@@ -315,6 +316,8 @@ page_init(void)
       		pages[i].pp_link = NULL;
 			continue;
 		}
+
+
         if (i < npages_basemem)
       	{    
       		pages[i].pp_ref = 0; 
@@ -709,19 +712,14 @@ setupkvm()
   	if((p = page_alloc(ALLOC_ZERO)))
   	{
     	ret = page2kva(p);
-    	boot_map_region(ret, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), PTE_W);
-    	boot_map_region(ret, KSTACKTOP-KSTKSIZE, ROUNDUP(KSTKSIZE, PGSIZE), PADDR(bootstack), PTE_W);
-		//per CPU kernel stack
-		for(i = 0;i < NCPU;i++)
+		memcpy(ret,kern_pgdir,PGSIZE);
+		for(i = 0;i < 1024;i++)
 		{
-			kstacktop_i = KSTACKTOP - i * (KSTKSIZE + KSTKGAP);
-			boot_map_region(ret, kstacktop_i - KSTKSIZE, KSTKSIZE, PADDR(percpu_kstacks[i]), PTE_W | PTE_P);
+			if(kern_pgdir[i] & PTE_P)
+			{
+				(*pa2page(PTE_ADDR(kern_pgdir[i]))).pp_ref++;
+			}
 		}
-		//logical apic
-		boot_map_region(ret, lapic, PGSIZE, lapicaddr, PTE_W|PTE_PCD|PTE_PWT);
-
-    	boot_map_region(ret, KERNBASE, ROUNDUP((0xFFFFFFFF - KERNBASE), PGSIZE), 0, PTE_W);
-    	boot_map_region(ret, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, PTE_W);
   	}
   	return ret; 
 }

@@ -1,7 +1,6 @@
 #include <kernel/task.h>
 #include <kernel/cpu.h>
 #include <inc/x86.h>
-#include <inc/stdio.h>
 
 #define ctx_switch(ts) \
   do { env_pop_tf(&((ts)->tf)); } while(0)
@@ -44,26 +43,66 @@
 void sched_yield(void)
 {
 	extern Task tasks[];
-	size_t next_pid;
-	/*pick new task in runqueue*/
-	while(1)
+	extern struct CpuInfo cpus[NCPU];
+	int f = cpunum();
+	int flag;
+	flag = 0;
+	int i;
+	int j=0;
+	i = (cpus[f].cpu_rq.index + 1) % NR_TASKS;
+	for(j=0;j<NR_TASKS;j++)
 	{
-		if(++thiscpu->cpu_rq.pid_idx > thiscpu->cpu_rq.pid_count)
+		if(cpus[f].cpu_rq.task_rq[i]!=NULL && cpus[f].cpu_rq.task_rq[i]->state == TASK_RUNNABLE)
 		{
-			thiscpu->cpu_rq.pid_idx = 0;
+			if(cpus[f].cpu_task->state == TASK_RUNNING  )
+			{
+				cpus[f].cpu_task->state = TASK_RUNNABLE;
+				cpus[f].cpu_task->remind_ticks = TIME_QUANT;
+				cpus[f].cpu_task = cpus[f].cpu_rq.task_rq[i];
+				lcr3( PADDR( cpus[f].cpu_rq.task_rq[i]->pgdir ) );
+				cpus[f].cpu_rq.task_rq[i]->state = TASK_RUNNING;
+				cpus[f].cpu_rq.index = i;
+				break;
+				
+			}
+			
+			if(cpus[f].cpu_task->state == TASK_SLEEP)
+			{
+				cpus[f].cpu_task = cpus[f].cpu_rq.task_rq[i];		
+				lcr3( PADDR( cpus[f].cpu_rq.task_rq[i]->pgdir ) );
+				cpus[f].cpu_rq.task_rq[i]->state = TASK_RUNNING;
+				cpus[f].cpu_rq.index = i;
+				break;
+			}
+			
+			if(cpus[f].cpu_task->state == TASK_STOP)
+			{
+				cpus[f].cpu_task = cpus[f].cpu_rq.task_rq[i];
+				lcr3( PADDR( cpus[f].cpu_rq.task_rq[i]->pgdir ) );
+                                cpus[f].cpu_rq.task_rq[i]->state = TASK_RUNNING;
+				cpus[f].cpu_rq.index = i;
+                                break;
+			}
+			if(cpus[f].cpu_task->state == TASK_FREE)
+			{
+				cpus[f].cpu_task = cpus[f].cpu_rq.task_rq[i];
+				lcr3( PADDR( cpus[f].cpu_rq.task_rq[i]->pgdir ) );
+                                cpus[f].cpu_rq.task_rq[i]->state = TASK_RUNNING;
+				cpus[f].cpu_rq.index = i;
+                                break;
+				
+			}
 		}
-		next_pid = thiscpu->cpu_rq.pid_list[thiscpu->cpu_rq.pid_idx];
-		if(tasks[next_pid].state == TASK_RUNNABLE)
+		else if(cpus[f].cpu_rq.task_rq[i]!=NULL && cpus[f].cpu_rq.task_rq[i]->state == TASK_RUNNING)
 		{
-			break;
+			cpus[f].cpu_task = cpus[f].cpu_rq.task_rq[i];
+			lcr3( PADDR( cpus[f].cpu_rq.task_rq[i]->pgdir ) );
+			cpus[f].cpu_rq.task_rq[i]->remind_ticks = TIME_QUANT;	
 		}
-	}
-	/*assign new task*/
-	thiscpu->cpu_task = &tasks[next_pid];
-	thiscpu->cpu_task->state = TASK_RUNNING;
-	thiscpu->cpu_task->remind_ticks = TIME_QUANT;
-	lcr3(PADDR(thiscpu->cpu_task->pgdir));
+		i = (i+1)%NR_TASKS;
 
-	/*dispatch task*/
-	ctx_switch(thiscpu->cpu_task);
+
+	}
+	env_pop_tf(&cpus[f].cpu_task->tf);
+	
 }

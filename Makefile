@@ -13,6 +13,8 @@ CFLAGS += -g
 
 CFLAGS += -I.
 
+CFLAGS += -DDEBUG_SPINLOCK
+
 OBJDIR = .
 
 CPUS ?= 4

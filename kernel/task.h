@@ -3,7 +3,8 @@
 
 #include <inc/trap.h>
 #include <kernel/mem.h>
-#define NR_TASKS	10
+#include <kernel/spinlock.h>
+#define NR_TASKS	64
 #define TIME_QUANT	100
 
 typedef enum
@@ -13,21 +14,21 @@ typedef enum
 	TASK_RUNNING,
 	TASK_SLEEP,
 	TASK_STOP,
-	TASK_IDLE
 } TaskState;
 
 // Each task's user space
 #define USR_STACK_SIZE	(40960)
 
-typedef struct
+struct spinlock TASK_LOCK;
+
+typedef struct 
 {
 	int task_id;
 	int parent_id;
 	struct Trapframe tf; //Saved registers
 	int32_t remind_ticks;
 	TaskState state;	//Task state
-  pde_t *pgdir;  //Per process Page Directory
-	
+  	pde_t *pgdir;  //Per process Page Directory
 } Task;
 
 // TODO Lab6
@@ -42,9 +43,10 @@ typedef struct
 //
 typedef struct
 {
-	uint32_t pid_idx;
-	uint32_t pid_list[NR_TASKS];
-	uint32_t pid_count;/*total task in this cpu*/
+	int index;
+	int number;
+	int flag;
+	Task* task_rq[NR_TASKS];
 } Runqueue;
 
 
@@ -56,8 +58,6 @@ void env_pop_tf(struct Trapframe *tf);
  * Interface for real implementation of kill and fork
  * Since their real implementation should be in kernel/task.c
  */
-void sys_kill(int pid);
 int sys_fork();
-
-
+void sys_kill(int pid);
 #endif
