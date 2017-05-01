@@ -286,14 +286,23 @@ int sys_fork()
 			min_id = cpus[i].cpu_id;
 		}
 	}
-	/*
-	cpus[min_id].cpu_rq.total_count++;
-	cpus[min_id].cpu_rq.task_rq[(cpus[min_id].cpu_rq.total_count)%NR_TASKS] = &tasks[pid];
-	*/
-    int t_index = cpus[min_id].cpu_rq.index;
-    int t_number = cpus[min_id].cpu_rq.total_count;
-    cpus[min_id].cpu_rq.task_rq[(t_index + t_number)%NR_TASKS] = &tasks[pid];
-    cpus[min_id].cpu_rq.total_count++;
+	int failed = 1;
+	spin_lock(&TASK_LOCK);
+	for(i = 0;i < NR_TASKS;i++)
+	{
+		if(cpus[min_id].cpu_rq.task_rq[i] == NULL)
+		{
+			cpus[min_id].cpu_rq.task_rq[i] =  &tasks[pid];
+			cpus[min_id].cpu_rq.total_count++;
+			failed = 0;
+			break;
+		}
+	}
+	spin_unlock(&TASK_LOCK);
+	if(i == NR_TASKS && failed)
+	{
+		return -1;
+	}
 
 	tasks[pid].tf.tf_regs.reg_eax = 0;
 	return pid;
