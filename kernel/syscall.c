@@ -10,13 +10,16 @@ extern void sys_settextcolor(unsigned char forecolor, unsigned char backcolor); 
 extern void sys_cls(); // kernel/screen.c
 extern void sched_yield();
 
+volatile struct spinlock PT_LOCK;
 void do_puts(char *str, uint32_t len)
 {
 	uint32_t i;
+	spin_lock(&PT_LOCK);
 	for (i = 0; i < len; i++)
 	{
 		k_putch(str[i]);
 	}
+	spin_unlock(&PT_LOCK);
 }
 
 int32_t do_getc()

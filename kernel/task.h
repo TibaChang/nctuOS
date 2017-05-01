@@ -19,7 +19,7 @@ typedef enum
 // Each task's user space
 #define USR_STACK_SIZE	(40960)
 
-struct spinlock TASK_LOCK;
+volatile struct spinlock TASK_LOCK;
 
 typedef struct 
 {
@@ -44,7 +44,7 @@ typedef struct
 typedef struct
 {
 	int index;
-	int number;
+	int total_count;
 	Task* task_rq[NR_TASKS];
 } Runqueue;
 

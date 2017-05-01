@@ -26,7 +26,6 @@ putch(int ch, struct printbuf *b)
 	b->cnt++;
 }
 
-
 int
 vcprintf(const char *fmt, va_list ap)
 {

@@ -82,7 +82,7 @@ boot_aps(void)
 	size_t i,bootcpu_idx;
 	memmove(KADDR(MPENTRY_PADDR),mpentry_start,(uintptr_t)mpentry_end - (uintptr_t)mpentry_start);
 	bootcpu_idx = (bootcpu - cpus)/sizeof(struct CpuInfo*);
-	for(i = 0;i < ncpu;i++)
+	for(i = 0;i < (size_t)ncpu;i++)
 	{
 		if(i == bootcpu_idx)
 		{

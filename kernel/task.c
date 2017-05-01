@@ -9,8 +9,6 @@
 #include <kernel/spinlock.h>
 
 
-struct spinlock task_lock;
-
 
 // Global descriptor table.
 //
@@ -57,7 +55,7 @@ struct Pseudodesc gdt_pd = {
 
 
 static struct tss_struct tss;
-Task tasks[NR_TASKS];
+volatile Task tasks[NR_TASKS];
 
 extern char bootstack[];
 
@@ -101,7 +99,6 @@ extern void sched_yield(void);
  * 6. Return the pid of the newly created task.
  
  */
-struct spinlock TASK_LOCK;
 int task_create()
 {
 	Task *ts = NULL;
@@ -209,8 +206,11 @@ void sys_kill(int pid)
 			if(thiscpu->cpu_rq.task_rq[rq_idx]!=NULL && thiscpu->cpu_rq.task_rq[rq_idx]->task_id == pid)
 			{
 				task_free(pid);
+				spin_lock(&TASK_LOCK);
 				tasks[pid].state = TASK_FREE;
-				thiscpu->cpu_rq.number--;
+				spin_unlock(&TASK_LOCK);
+				thiscpu->cpu_rq.task_rq[rq_idx] = NULL;
+				thiscpu->cpu_rq.total_count--;
 				sched_yield();
 			}
 		}
@@ -275,21 +275,26 @@ int sys_fork()
 	setupvm(tasks[pid].pgdir, (uint32_t)URODATA_start, URODATA_SZ);
 
 	/*assign to cpu with loading balance*/
-	int min = bootcpu->cpu_rq.number;
+	int min = bootcpu->cpu_rq.total_count;
 	int min_id;
 	int i;
 	for(i=0;i<ncpu;i++)
 	{	
-		if(min >= cpus[i].cpu_rq.number)
+		if(min >= cpus[i].cpu_rq.total_count)
 		{
-			min = cpus[i].cpu_rq.number;
+			min = cpus[i].cpu_rq.total_count;
 			min_id = cpus[i].cpu_id;
 		}
 	}
-	int t_index = cpus[min_id].cpu_rq.index;
-	int t_number = cpus[min_id].cpu_rq.number;
-	cpus[min_id].cpu_rq.task_rq[(t_index + t_number)%NR_TASKS] = &tasks[pid];
-	cpus[min_id].cpu_rq.number++;
+	/*
+	cpus[min_id].cpu_rq.total_count++;
+	cpus[min_id].cpu_rq.task_rq[(cpus[min_id].cpu_rq.total_count)%NR_TASKS] = &tasks[pid];
+	*/
+    int t_index = cpus[min_id].cpu_rq.index;
+    int t_number = cpus[min_id].cpu_rq.total_count;
+    cpus[min_id].cpu_rq.task_rq[(t_index + t_number)%NR_TASKS] = &tasks[pid];
+    cpus[min_id].cpu_rq.total_count++;
+
 	tasks[pid].tf.tf_regs.reg_eax = 0;
 	return pid;
 }
@@ -340,6 +345,7 @@ void task_init_percpu()
 	// Setup a TSS so that we get the right stack
 	// when we trap to the kernel.
 	memset(&(thiscpu->cpu_tss),0,sizeof(thiscpu->cpu_tss));
+	//memset(&(thiscpu->cpu_rq),0,sizeof(thiscpu->cpu_rq));
 	thiscpu->cpu_tss.ts_esp0 = percpu_kstacks[f] + KSTKSIZE;
 	thiscpu->cpu_tss.ts_ss0 = GD_KD;
 
@@ -358,9 +364,7 @@ void task_init_percpu()
 	gdt[(GD_TSS0  >> 3) + f ].sd_s = 0;
 	
 	/* Setup first task */
-	spin_lock(&task_lock);
 	i = task_create();
-	spin_unlock(&task_lock);
 	thiscpu->cpu_task = &(tasks[i]);
 	
 	/* For user program */
@@ -370,17 +374,13 @@ void task_init_percpu()
 	setupvm(thiscpu->cpu_task->pgdir, (uint32_t)URODATA_start, URODATA_SZ);
 	if(thiscpu != bootcpu)
 	{
-		spin_lock(&task_lock);
 		thiscpu->cpu_task->tf.tf_eip = (uint32_t)idle_entry;
-		spin_unlock(&task_lock);
 	}
 	else
 	{
-		spin_lock(&task_lock);
 		thiscpu->cpu_task->tf.tf_eip = (uint32_t)user_entry;
-		spin_unlock(&task_lock);
 	}
-	thiscpu->cpu_rq.number = 1;
+	thiscpu->cpu_rq.total_count = 1;
 	thiscpu->cpu_rq.index = 0;
 	thiscpu->cpu_rq.task_rq[0] = thiscpu->cpu_task;
 	thiscpu->cpu_task->state = TASK_RUNNING;
