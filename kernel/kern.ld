@@ -41,8 +41,8 @@ PROVIDE(URODATA_start = .);
   lib/syscall.o (.rodata)
   user/shell.o (.rodata)
   user/main.o (.rodata)
-PROVIDE(URODATA_end = .);
   *(.rodata .rodata.* .gnu.linkonce.r.*)
+  PROVIDE(URODATA_end = .);
 }
 PROVIDE(rdata_end = .);
 

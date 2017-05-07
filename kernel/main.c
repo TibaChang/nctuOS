@@ -11,8 +11,13 @@
 #include <kernel/cpu.h>
 #include <inc/string.h>
 
+#include <fs.h>
+
+extern void fs_test();
 extern void init_video(void);
 static void boot_aps(void);
+extern int disk_init();
+extern void disk_test();
 
 void kernel_main(void)
 {
@@ -28,8 +33,14 @@ void kernel_main(void)
 	trap_init();
 	pic_init();
 	kbd_init();
+
   	timer_init();
   	syscall_init();
+	disk_init();
+	disk_test();
+	/*TODO: Lab7, uncommend it when you finish Lab7 3.1 part */
+	// fs_test();
+	// fs_init();
 	boot_aps();
 
   printk("Kernel code base start=0x%08x to = 0x%08x\n", stext, etext);

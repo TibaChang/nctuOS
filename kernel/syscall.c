@@ -121,7 +121,16 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 		sys_cls();
 		retVal = 0;
     	break;
-	}
+  /* TODO: Lab7 file I/O system call */
+  case SYS_open:
+  case SYS_read:
+  case SYS_write:
+  case SYS_close:
+  case SYS_lseek:
+  case SYS_unlink:
+    retVal = -1; //Not yet implemented
+    break;
+  }
 	return retVal;
 }
 
