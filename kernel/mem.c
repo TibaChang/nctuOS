@@ -707,8 +707,6 @@ setupkvm()
   	pde_t *ret = NULL;
 	size_t i;
 	uintptr_t kstacktop_i;
-	extern uint32_t *lapic;
-	extern physaddr_t lapicaddr;
   	if((p = page_alloc(ALLOC_ZERO)))
   	{
     	ret = page2kva(p);

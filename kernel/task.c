@@ -105,7 +105,6 @@ int task_create()
 	struct PageInfo *pp;
 	/* Find a free task structure */
 	int pid;
-	spin_lock(&TASK_LOCK);
 	for(pid = 0; pid < NR_TASKS; pid++)
 	{
 		if(tasks[pid].state == TASK_FREE)
@@ -114,7 +113,6 @@ int task_create()
 			break;
 		}
 	}
-	spin_unlock(&TASK_LOCK);
 	if(ts == NULL)
 	{
 		return -1;
@@ -205,8 +203,8 @@ void sys_kill(int pid)
 		{
 			if(thiscpu->cpu_rq.task_rq[rq_idx]!=NULL && thiscpu->cpu_rq.task_rq[rq_idx]->task_id == pid)
 			{
-				task_free(pid);
 				spin_lock(&TASK_LOCK);
+				task_free(pid);
 				tasks[pid].state = TASK_FREE;
 				spin_unlock(&TASK_LOCK);
 				thiscpu->cpu_rq.task_rq[rq_idx] = NULL;
@@ -252,7 +250,9 @@ int sys_fork()
 {
 	/* pid for newly created process */
 	int pid;
+	spin_lock(&TASK_LOCK);
 	pid = task_create();
+	spin_unlock(&TASK_LOCK);
 	if(pid<0)
 	{
 		return -1;
@@ -287,7 +287,6 @@ int sys_fork()
 		}
 	}
 	int failed = 1;
-	spin_lock(&TASK_LOCK);
 	for(i = 0;i < NR_TASKS;i++)
 	{
 		if(cpus[min_id].cpu_rq.task_rq[i] == NULL)
@@ -298,7 +297,6 @@ int sys_fork()
 			break;
 		}
 	}
-	spin_unlock(&TASK_LOCK);
 	if(i == NR_TASKS && failed)
 	{
 		return -1;
@@ -373,7 +371,9 @@ void task_init_percpu()
 	gdt[(GD_TSS0  >> 3) + f ].sd_s = 0;
 	
 	/* Setup first task */
+	spin_lock(&TASK_LOCK);
 	i = task_create();
+	spin_unlock(&TASK_LOCK);
 	thiscpu->cpu_task = &(tasks[i]);
 	
 	/* For user program */

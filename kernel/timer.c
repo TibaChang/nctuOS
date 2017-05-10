@@ -29,7 +29,10 @@ void timer_handler(struct Trapframe *tf)
   extern void sched_yield();
   extern Task tasks[];
   int i;
-  jiffies++;
+  if(thiscpu->cpu_id == bootcpu->cpu_id)
+  {
+  	jiffies++;
+  }
   lapic_eoi();
 
 
