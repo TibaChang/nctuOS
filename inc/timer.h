@@ -1,5 +1,5 @@
 #ifndef TIMER_H
 #define TIMER_H
 void timer_init();
-unsigned long get_tick();
+unsigned long get_ticks();
 #endif

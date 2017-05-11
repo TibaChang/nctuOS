@@ -53,3 +53,5 @@ gdb: boot/boot kernel/system
 	dd if=$(OBJDIR)/kernel/system of=$(OBJDIR)/kernel.img seek=1 conv=notrunc 2>/dev/null
 	qemu-system-i386 -hda kernel.img -hdb lab7.img -monitor stdio -s -S -smp $(CPUS)
 
+img:
+	qemu-img create -f raw lab7.img 32M
