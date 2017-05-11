@@ -122,42 +122,54 @@ int fat_close(struct fs_fd* file)
 
 int fat_read(struct fs_fd* file, void* buf, size_t count)
 {
-    unsigned int num;
-    int ret = f_read(file->data, buf, count, &num);
-    if (ret != 0)
-	{
-        return -ret;
-	}
-    else
-	{
-        return num;
-	}
+    FIL* data = file->data;
+    UINT bw;
+    int ret_val = -1;
+    ret_val = f_read(data, buf, count, &bw);
+    if (ret_val != 0)
+        return -ret_val;
+
+    file->pos += bw;
+    return bw;
 }
 
 int fat_write(struct fs_fd* file, const void* buf, size_t count)
 {
-    unsigned int num;
-    int ret = f_write(file->data, buf, count, &num);
-    if (ret != 0)
-	{
-        return -ret;
-	}
-    else
-	{
-        return num;
-	}
+    FIL* data = file->data;
+    UINT bw; 
+    int ret_val = -1; 
+    ret_val = f_write(data, buf, count, &bw);
+    if (ret_val != 0)
+        return -ret_val;
+    
+    int next_pos = file->pos + bw; 
+    int size_offset = 0;
+    if (next_pos > file->size) 
+        size_offset = next_pos - file->size;
+    file->size += size_offset;   // update size of file
+    file->pos = next_pos;
+    
+    return bw; 
 }
 
 int fat_lseek(struct fs_fd* file, off_t offset)
 {
     int ret = f_lseek(file->data, offset);
-    return -ret;
+	if(ret != 0)
+	{
+		return -ret;
+	}
+    return 0;
 }
 
-int fat_unlink(struct fs_fd* file, const char *pathname)
+int fat_unlink( const char *pathname)
 {
     int ret = f_unlink(pathname);
-    return -ret;
+	if(ret != 0)
+	{
+		return -ret;
+	}
+    return 0;
 }
 
 struct fs_ops elmfat_ops = {

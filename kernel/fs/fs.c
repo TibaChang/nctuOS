@@ -201,7 +201,7 @@ int file_lseek(struct fs_fd* fd, off_t offset)
     return mapposix(ret);
 }
 
-int file_unlink(const char *path)
+int file_unlink( const char *path)
 {
   	int ret = fat_fs.ops->unlink(path);
     return mapposix(ret);
