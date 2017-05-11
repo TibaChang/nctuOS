@@ -203,12 +203,8 @@ int file_lseek(struct fs_fd* fd, off_t offset)
 
 int file_unlink(const char *path)
 {
-	/*
   	int ret = fat_fs.ops->unlink(path);
     return mapposix(ret);
-	*/
-	//where is the fd in interface?
-	return 0;
 }
 
 

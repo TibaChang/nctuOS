@@ -53,7 +53,7 @@ struct fs_ops
     int (*lseek)	(struct fs_fd* fd, off_t offset);
     
     //int (*getdents)	(struct fs_fd* fd, struct dirent* dirp, uint32_t count);
-    int (*unlink)	(struct fs_fd* fs, const char* pathname);
+    int (*unlink)	(const char* pathname);
 
 };
 
