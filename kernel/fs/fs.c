@@ -24,7 +24,60 @@ struct fs_dev fat_fs = {
     .ops = &elmfat_ops,
     .data = &fat
 };
-    
+
+int mapposix(int ret)
+{
+    int r = -ret;
+    int retVal;
+
+    switch(r)
+    {
+        case FR_OK:
+            retVal = STATUS_OK;
+            break;
+        case FR_DISK_ERR:
+        case FR_NOT_READY:
+            retVal = STATUS_EIO;
+            break;
+        case FR_INT_ERR:
+        case FR_INVALID_DRIVE:
+            retVal = STATUS_EBADF;
+            break;
+        case FR_NO_FILE:
+        case FR_NO_PATH:
+        case FR_INVALID_NAME:
+            retVal = STATUS_ENOENT;
+            break;
+        case FR_DENIED:
+        case FR_EXIST:
+            retVal = STATUS_EEXIST;
+            break;
+        case FR_INVALID_OBJECT:
+            retVal = STATUS_ENXIO;
+            break;
+        case FR_WRITE_PROTECTED:
+            retVal = STATUS_EROFS;
+            break;
+        case FR_NOT_ENABLED:
+            retVal = STATUS_ENOSPC;
+            break;
+        case FR_NO_FILESYSTEM:
+            retVal = STATUS_ENODEV;
+            break;
+        case FR_MKFS_ABORTED:
+        case FR_INVALID_PARAMETER:
+            retVal = STATUS_EINVAL;
+            break;
+        case FR_TIMEOUT:
+        case FR_LOCKED:
+        case FR_NOT_ENOUGH_CORE:
+        case FR_TOO_MANY_OPEN_FILES:
+            retVal = STATUS_EBUSY;
+            break;
+    }
+    return -retVal;
+}
+   
 /*TODO: Lab7, VFS level file API.
  *  This is a virtualize layer. Please use the function pointer
  *  under struct fs_ops to call next level functions.
@@ -94,35 +147,68 @@ int fs_init()
 */
 int fs_mount(const char* device_name, const char* path, const void* data)
 {
+    if (strcmp(device_name,"elmfat")==0)
+	{
+    	int ret;
+    	strcpy(fat_fs.path,path);
+    	ret = fat_fs.ops->mount(&fat_fs, data);
+    	return mapposix(ret);
+    }   
     return -STATUS_EIO;
 } 
 
 /* Note: Before call ops->open() you may copy the path and flags parameters into fd object structure */
 int file_open(struct fs_fd* fd, const char *path, int flags)
 {
-
+    fd->flags = flags;
+    int ret = fat_fs.ops->open(fd);
+    return mapposix(ret);
 }
 
 int file_read(struct fs_fd* fd, void *buf, size_t len)
 {
-
+	int ret = fat_fs.ops->read(fd, buf, len);
+    if (ret < 0)
+	{
+		return mapposix(ret);
+	}else
+	{
+		return ret;
+	}
 }
 
 int file_write(struct fs_fd* fd, const void *buf, size_t len)
 {
-
+    int ret = fat_fs.ops->write(fd, buf, len);
+    if (ret < 0) 
+	{	
+		return mapposix(ret);
+	}else
+	{
+		return ret;
+	}
 }
 
 int file_close(struct fs_fd* fd)
 {
-
+    int ret = fat_fs.ops->close(fd);
+    return mapposix(ret);
 }
+
 int file_lseek(struct fs_fd* fd, off_t offset)
 {
-
+    int ret = fat_fs.ops->lseek(fd, offset);
+    return mapposix(ret);
 }
+
 int file_unlink(const char *path)
 {
+	/*
+  	int ret = fat_fs.ops->unlink(path);
+    return mapposix(ret);
+	*/
+	//where is the fd in interface?
+	return 0;
 }
 
 
