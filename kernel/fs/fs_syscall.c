@@ -70,12 +70,23 @@ int sys_open(const char *file, int flags, int mode)
     if(findFlag == false)
 	{
 	    fd = fd_new();
+		if(fd == -1)
+		{
+			return -1;
+		}
         fd_file = fd_get(fd);
+		fd_put(fd_file);
         strcpy(fd_file->path,file);	
-    }
+    }else
+	{
+		fd_file = fd_get(fd);
+		if(fd_file->ref_count > FS_FD_MAX)
+		{
+			return -1;
+		}
+	}
 
     int ret = file_open(fd_file, file, flags);
-    fd_put(fd_file);
 
     FIL *object = fd_file->data; 
     size_t size = object->obj.objsize;
@@ -104,8 +115,10 @@ int sys_close(int fd)
     memset(fd_file->path,0,sizeof(fd_file->path));
 
     int ret = file_close(fd_file);
-    fd_put(fd_file);
-    fd_put(fd_file);//new_fd() and get_fd() add twice in sys_open
+	if(fd_file->ref_count > 0)
+	{
+    	fd_put(fd_file);
+	}
     return ret;
 }
 
