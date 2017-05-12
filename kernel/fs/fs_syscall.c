@@ -7,6 +7,8 @@
 #include <fs.h>
 #include <inc/string.h>
 #include <kernel/fs/fat/ff.h>
+#include <kernel/mem.h>
+#include <kernel/cpu.h>
 
 /*TODO: Lab7, file I/O system call interface.*/
 /*Note: Here you need handle the file system call from user.
@@ -46,6 +48,19 @@
  *        │     disk     │  simple ATA disk dirver
  *        └──────────────┘
  */
+
+extern struct fs_fd fd_table[FS_FD_MAX];
+static int check_valid_fd(struct fs_fd *fd) {
+    bool is_valid = false;
+    int i;
+    for (i = 0; i < FS_FD_MAX; ++i)
+        if (fd == &fd_table[i]) {
+            is_valid = true;
+            break;
+        }
+    return is_valid;
+}
+
 
 // Below is POSIX like I/O system call 
 int sys_open(const char *file, int flags, int mode)
@@ -135,7 +150,32 @@ int sys_read(int fd, void *buf, size_t len)
 	}
     struct fs_fd* fd_file;
     fd_file = fd_get(fd);
-    int ret = file_read(fd_file, buf, len);//correct length?
+
+    struct PageInfo* page = page_lookup(thiscpu->cpu_task->pgdir, buf, NULL);
+    if (page == NULL)
+        return -STATUS_EINVAL;
+
+	if (!check_valid_fd(fd_file))
+	{
+		printk("[SYS READ] fd invalid\n");
+        return -STATUS_EBADF;
+	}
+
+	printk("[SYS READ] Start fd pos = %d, size = %d\n", fd_file->pos, fd_file->size);
+	printk("[SYS READ] count= %d \n", len);
+
+    int count = 0;
+    if (fd_file->pos + len > fd_file->size)
+	{
+        count = fd_file->size - fd_file->pos;
+	}else
+	{
+        count = len;
+	}
+
+	printk("[SYS READ] correced count = %d\n", count);
+    int ret = file_read(fd_file, buf, count);
+	printk("[SYS READ] ret = %d, %s\n", ret, buf);
     fd_put(fd_file);
     return ret;
 }
@@ -154,7 +194,13 @@ int sys_write(int fd, const void *buf, size_t len)
     struct fs_fd* fd_file;
     fd_file = fd_get(fd);
 
+    struct PageInfo* page = page_lookup(thiscpu->cpu_task->pgdir, buf, NULL);
+    if (page == NULL)
+        return -STATUS_EINVAL;
+
+	printk("[SYS WRITE] Start pos = %d, size = %d\n", fd_file->pos, fd_file->size);
     int ret = file_write(fd_file, buf, len);
+	printk("[SYS WRITE] ret = %d, %s\n", ret, buf);
     fd_put(fd_file);
 
     FIL *object;
@@ -186,8 +232,11 @@ off_t sys_lseek(int fd, off_t offset, int whence)
 	{
 		new_offset = fd_file->size + offset;
 	}
+	fd_file->pos = new_offset;
 
+	printk("[SYS LSEEK] Start offset = %d, size = %d\n", offset, whence);
     int ret = file_lseek(fd_file, new_offset);
+	printk("[SYS LSEEK] result = %d\n", ret);
     fd_put(fd_file);
     return ret;
 }

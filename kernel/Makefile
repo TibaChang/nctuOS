@@ -45,7 +45,7 @@ kernel/drv/%.o: kernel/drv/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 kernel/%.o: kernel/%.c
-	$(CC) $(CFLAGS) -Os -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 kernel/%.o: kernel/%.S
 	$(CC) $(CFLAGS) -c -o $@ $<

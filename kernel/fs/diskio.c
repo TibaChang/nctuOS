@@ -68,6 +68,7 @@ DSTATUS disk_initialize (BYTE pdrv)
    *       to help you get the disk status.
    */
   return disk_init();
+  //return 0;
 }
 
 /**
@@ -104,7 +105,14 @@ DRESULT disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count)
     BYTE *ptr = buff;
     UINT cur_sector = sector;
     /* TODO */
-	return ide_read_sectors(DISK_ID, i, cur_sector, ptr);
+	printk("[DISK_READ]   sector %d count %d\n", sector, count);
+	//return ide_read_sectors(DISK_ID, i, cur_sector, ptr);
+	for(;i > 0;i--,ptr+=512)
+	{
+		err = ide_read_sectors(DISK_ID, 1, cur_sector, ptr);
+		cur_sector++;
+	}
+	return err;
 }
 
 /**
@@ -123,8 +131,14 @@ DRESULT disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count)
     int i = count;
     BYTE *ptr = buff;
     UINT cur_sector = sector;
-    /* TODO */    
-	return ide_write_sectors(DISK_ID, i, cur_sector, ptr);
+    /* TODO */
+	printk("[DISK WRITE]  sector %d count %d\n", sector, count);
+	for(;i > 0;i--,ptr+=512)
+	{
+		err = ide_write_sectors(DISK_ID, 1, cur_sector, ptr);
+		cur_sector++;
+	}
+	return err;
 }
 
 /**

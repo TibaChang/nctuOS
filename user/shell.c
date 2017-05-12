@@ -272,7 +272,7 @@ int filetest3(int argc, char **argv)
     }
     ret = read(fd, larg_buf, LARGE_SIZE);
     uassert(ret == LARGE_SIZE);
-    for (i = 0; i < LARGE_SIZE; i++)
+    for (i = 500; i < 550; i++)
     {
         //uassert(larg_buf[i] == i&0xFF);
         if ((larg_buf[i]&0xFF) != (i& 0xFF))
