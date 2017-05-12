@@ -100,7 +100,7 @@ int sys_open(const char *file, int flags, int mode)
 			return -1;
 		}
 	}
-
+	//printk("[SYS OPEN] fd=%d, file=%s\n",fd,file);
     int ret = file_open(fd_file, file, flags);
 
     FIL *object = fd_file->data; 
@@ -123,6 +123,7 @@ int sys_close(int fd)
         return -STATUS_EINVAL;
 	}
     struct fs_fd* fd_file = fd_get(fd);
+	//printk("[SYS CLOSE] fd=%d\n",fd);
 
     //clear size and pos
     fd_file->size = 0;
@@ -130,10 +131,8 @@ int sys_close(int fd)
     memset(fd_file->path,0,sizeof(fd_file->path));
 
     int ret = file_close(fd_file);
-	if(fd_file->ref_count > 0)
-	{
-    	fd_put(fd_file);
-	}
+   	fd_put(fd_file);//for previous get
+   	fd_put(fd_file);//for sys_open
     return ret;
 }
 
@@ -161,8 +160,8 @@ int sys_read(int fd, void *buf, size_t len)
         return -STATUS_EBADF;
 	}
 
-	printk("[SYS READ] Start fd pos = %d, size = %d\n", fd_file->pos, fd_file->size);
-	printk("[SYS READ] count= %d \n", len);
+	//printk("[SYS READ] Start fd pos = %d, size = %d\n", fd_file->pos, fd_file->size);
+	//printk("[SYS READ] count= %d \n", len);
 
     int count = 0;
     if (fd_file->pos + len > fd_file->size)
@@ -173,9 +172,9 @@ int sys_read(int fd, void *buf, size_t len)
         count = len;
 	}
 
-	printk("[SYS READ] correced count = %d\n", count);
+	//printk("[SYS READ] correced count = %d\n", count);
     int ret = file_read(fd_file, buf, count);
-	printk("[SYS READ] ret = %d, %s\n", ret, buf);
+	//printk("[SYS READ] ret = %d, %s\n", ret, buf);
     fd_put(fd_file);
     return ret;
 }
@@ -198,9 +197,9 @@ int sys_write(int fd, const void *buf, size_t len)
     if (page == NULL)
         return -STATUS_EINVAL;
 
-	printk("[SYS WRITE] Start pos = %d, size = %d\n", fd_file->pos, fd_file->size);
+	//printk("[SYS WRITE] Start pos = %d, size = %d\n", fd_file->pos, fd_file->size);
     int ret = file_write(fd_file, buf, len);
-	printk("[SYS WRITE] ret = %d, %s\n", ret, buf);
+	//printk("[SYS WRITE] ret = %d, %s\n", ret, buf);
     fd_put(fd_file);
 
     FIL *object;
@@ -234,9 +233,9 @@ off_t sys_lseek(int fd, off_t offset, int whence)
 	}
 	fd_file->pos = new_offset;
 
-	printk("[SYS LSEEK] Start offset = %d, size = %d\n", offset, whence);
+	//printk("[SYS LSEEK] Start offset = %d, size = %d\n", offset, whence);
     int ret = file_lseek(fd_file, new_offset);
-	printk("[SYS LSEEK] result = %d\n", ret);
+	//printk("[SYS LSEEK] result = %d\n", ret);
     fd_put(fd_file);
     return ret;
 }
@@ -244,7 +243,8 @@ off_t sys_lseek(int fd, off_t offset, int whence)
 int sys_unlink(const char *pathname)
 {
 /* TODO */
-	file_unlink(pathname);
+	int ret = file_unlink(pathname);
+	return ret;
 }
 
 

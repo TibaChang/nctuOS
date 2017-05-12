@@ -125,13 +125,13 @@ int fat_read(struct fs_fd* file, void* buf, size_t count)
     FIL* data = file->data;
     UINT bw;
     int ret_val = -1;
-	printk("[FAT_READ] START pos=%d, count=%d\n",file->pos,count);
+	//printk("[FAT_READ] START pos=%d, count=%d\n",file->pos,count);
     ret_val = f_read(data, buf, count, &bw);
     if (ret_val != 0)
         return -ret_val;
 
     file->pos += bw;
-	printk("[FAT_READ] END pos=%d, count=%d\n",file->pos,count);
+	//printk("[FAT_READ] END pos=%d, count=%d\n",file->pos,count);
     return bw;
 }
 
@@ -140,7 +140,7 @@ int fat_write(struct fs_fd* file, const void* buf, size_t count)
     FIL* data = file->data;
     UINT bw; 
     int ret_val = -1; 
-	printk("[FAT_WRITE] START  pos=%d, count=%d\n",file->pos,count);
+	//printk("[FAT_WRITE] START  pos=%d, count=%d\n",file->pos,count);
     ret_val = f_write(data, buf, count, &bw);
 
     if (ret_val != 0)
@@ -156,7 +156,7 @@ int fat_write(struct fs_fd* file, const void* buf, size_t count)
     file->size += size_offset;   // update size of file
     file->pos = next_pos;
     
-	printk("[FAT_WRITE] END  pos=%d, count=%d\n",file->pos,count);
+	//printk("[FAT_WRITE] END  pos=%d, count=%d\n",file->pos,count);
     return bw; 
 }
 

@@ -203,7 +203,21 @@ int file_lseek(struct fs_fd* fd, off_t offset)
 
 int file_unlink( const char *path)
 {
+	int i;
   	int ret = fat_fs.ops->unlink(path);
+	if(ret == 0)
+	{
+		for (i = 0; i < FS_FD_MAX; ++i)
+		{
+            struct fs_fd * cur_fd = &fd_table[i];
+            if (strcmp(cur_fd->path, path) == 0) 
+			{
+                strcpy(cur_fd->path, "");
+                cur_fd->ref_count = 0;
+                break;
+            } 
+		}
+	}
     return mapposix(ret);
 }
 
