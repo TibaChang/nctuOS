@@ -33,3 +33,69 @@ void fs_test()
     /* Unregister work area */
     f_mount(0, "", 0);
 }
+
+void ls_test_1()
+{
+    FATFS fs;      /* File system object (volume work area) */
+    FIL fil;       /* File object */
+    FRESULT res;   /* API result code */
+    UINT bw;       /* Bytes written */
+
+    /* Register work area (do not care about error) */
+    res = f_mount(&fs, "/", 1);
+    if (res != 0)
+    {
+        printk("Mount failed %d, try do mkfs.\n", res);
+        /* Create FAT volume with default cluster size */
+        res = f_mkfs("/", 0, 0);
+        res = f_mount(&fs, "/", 1); //Remount
+    }
+
+    /* Create a file as new */
+    res = f_open(&fil, "morning.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    
+    if (res != 0)
+        printk("Open failed %d\n", res);
+
+    /* Write a message */
+    f_write(&fil, "Good morning!\r\n", 15, &bw);
+
+    /* Close the file */
+    f_close(&fil);
+
+    /* Unregister work area */
+    f_mount(0, "", 0);
+}
+
+void ls_test_2()
+{
+    FATFS fs;      /* File system object (volume work area) */
+    FIL fil;       /* File object */
+    FRESULT res;   /* API result code */
+    UINT bw;       /* Bytes written */
+
+    /* Register work area (do not care about error) */
+    res = f_mount(&fs, "/", 1);
+    if (res != 0)
+    {
+        printk("Mount failed %d, try do mkfs.\n", res);
+        /* Create FAT volume with default cluster size */
+        res = f_mkfs("/", 0, 0);
+        res = f_mount(&fs, "/", 1); //Remount
+    }
+
+    /* Create a file as new */
+    res = f_open(&fil, "night.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    
+    if (res != 0)
+        printk("Open failed %d\n", res);
+
+    /* Write a message */
+    f_write(&fil, "Good night!\r\n", 13, &bw);
+
+    /* Close the file */
+    f_close(&fil);
+
+    /* Unregister work area */
+    f_mount(0, "", 0);
+}

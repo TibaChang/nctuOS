@@ -22,7 +22,7 @@ enum {
   SYS_write,
   SYS_lseek,
   SYS_unlink,
-  SYS_readdir,
+  SYS_list,
   NSYSCALLS
 };
 
@@ -56,5 +56,6 @@ int sys_read(int fd, void *buf, size_t len);
 int sys_write(int fd, const void *buf, size_t len);
 off_t sys_lseek(int fd, off_t offset, int whence);
 int sys_unlink(const char *pathname);
-int sys_readdir(int fd,  char *buf ,int *type, unsigned long *size);
+//int sys_readdir(int fd,  char *buf ,int *type, unsigned long *size);
+int sys_list(const char *path);
 #endif

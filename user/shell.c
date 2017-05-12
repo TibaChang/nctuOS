@@ -27,6 +27,7 @@ int filetest3(int argc, char **argv);
 int filetest4(int argc, char **argv);
 int filetest5(int argc, char **argv);
 int spinlocktest(int argc, char **argv);
+int ls_cmd(int argc, char **argv);
 
 
 struct Command commands[] = {
@@ -42,7 +43,8 @@ struct Command commands[] = {
   { "filetest3", "Laqrge block test", filetest3},
   { "filetest4", "Error test", filetest4},
   { "filetest5", "unlink test", filetest5},
-  { "spinlocktest", "Test spinlock", spinlocktest }
+  { "spinlocktest", "Test spinlock", spinlocktest },
+  { "ls", "list all files", ls_cmd },
 };
 const int NCOMMANDS = (sizeof(commands)/sizeof(commands[0]));
 
@@ -184,6 +186,19 @@ int spinlocktest(int argc, char **argv)
   }
   return 0;
 }
+
+
+int ls_cmd(int argc, char **argv) 
+{
+    if (argc < 2) {
+        cprintf("Please enter correct format : ls [PATH]\n");
+        return 0;
+    }   
+    list(argv[1]);
+    return 0;
+}
+
+
 #define BUFSIZE 128
 int filetest(int argc, char **argv)
 {

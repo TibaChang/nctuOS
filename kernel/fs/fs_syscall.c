@@ -247,6 +247,20 @@ int sys_unlink(const char *pathname)
 	return ret;
 }
 
-
+int sys_list(const char *pathname)
+{
+    DIR dir;
+    FILINFO fno;
+    int res;
+    f_opendir(&dir, pathname);
+    res = f_readdir(&dir, &fno);
+    while (strlen(fno.fname)) {
+        printk("filename = %s, fsize = %d, date = %d, time = %d\n", fno.fname, fno.fsize, fno.fdate, fno.ftime);
+        res = f_readdir(&dir, &fno);
+    }   
+    f_closedir(&dir);
+             
+    return 0;
+}
               
 

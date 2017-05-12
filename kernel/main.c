@@ -14,6 +14,8 @@
 #include <fs.h>
 
 extern void fs_test();
+extern void ls_test_1(void);
+extern void ls_test_2(void);
 extern void init_video(void);
 static void boot_aps(void);
 extern int disk_init();
@@ -40,6 +42,8 @@ void kernel_main(void)
 	disk_test();
 	/*TODO: Lab7, uncommend it when you finish Lab7 3.1 part */
 	fs_test();
+	ls_test_1();
+	ls_test_2();
 	fs_init();
 	boot_aps();
 
