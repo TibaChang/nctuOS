@@ -252,25 +252,44 @@ int sys_ls(const char *pathname)
     DIR dir;
     FILINFO fno;
     int res;
-    f_opendir(&dir, pathname);
+    if(f_opendir(&dir, pathname) != 0)
+	{
+		printk("path not exist\n");
+		return 0;
+	}
     res = f_readdir(&dir, &fno);
     while (strlen(fno.fname)) {
-        printk("filename = %s, fsize = %d, date = %d, time = %d\n", fno.fname, fno.fsize, fno.fdate, fno.ftime);
+		if(fno.fattrib == 32)
+		{
+        	printk("filename = %s, size = %d, type = FILE\n", fno.fname, fno.fsize);
+		}else
+		{
+        	printk("filename = %s, fsize = %d, type = %d\n", fno.fname, fno.fsize, fno.fattrib);
+		}
         res = f_readdir(&dir, &fno);
     }   
     f_closedir(&dir);
-             
     return 0;
 }
               
 int sys_rm(const char *pathname)
 {
-    printk("I am rm\n"); 
-    return 0;
+	int ret = file_unlink(pathname);
+	if(ret != 0)
+	{
+		printk("Cannot remove %s\n",pathname);
+	}
+	return ret;
 }
 
 int sys_touch(const char *pathname)
 {
-    printk("I am touch\n"); 
+	FIL fil;
+	//create new file
+	if(f_open(&fil, pathname, FA_CREATE_ALWAYS | FA_WRITE) != 0)
+	{
+		printk("create new file failed\n");
+	}
+	f_close(&fil);
     return 0;
 }
