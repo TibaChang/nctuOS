@@ -28,6 +28,8 @@ int filetest4(int argc, char **argv);
 int filetest5(int argc, char **argv);
 int spinlocktest(int argc, char **argv);
 int ls_cmd(int argc, char **argv);
+int rm_cmd(int argc, char **argv);
+int touch_cmd(int argc, char **argv);
 
 
 struct Command commands[] = {
@@ -45,6 +47,8 @@ struct Command commands[] = {
   { "filetest5", "unlink test", filetest5},
   { "spinlocktest", "Test spinlock", spinlocktest },
   { "ls", "list all files", ls_cmd },
+  { "rm", "remove file", rm_cmd },
+  { "touch", "touch file", touch_cmd },
 };
 const int NCOMMANDS = (sizeof(commands)/sizeof(commands[0]));
 
@@ -194,7 +198,27 @@ int ls_cmd(int argc, char **argv)
         cprintf("Please enter correct format : ls [PATH]\n");
         return 0;
     }   
-    list(argv[1]);
+    ls(argv[1]);
+    return 0;
+}
+
+int rm_cmd(int argc, char **argv) 
+{
+    if (argc < 2) {
+        cprintf("Please enter correct format : rm [PATH TO FILE]\n");
+        return 0;
+    }   
+    rm(argv[1]);
+    return 0;
+}
+
+int touch_cmd(int argc, char **argv) 
+{
+    if (argc < 2) {
+        cprintf("Please enter correct format : touch [PATH TO FILE]\n");
+        return 0;
+    }   
+    touch(argv[1]);
     return 0;
 }
 

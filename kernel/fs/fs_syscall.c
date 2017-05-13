@@ -247,7 +247,7 @@ int sys_unlink(const char *pathname)
 	return ret;
 }
 
-int sys_list(const char *pathname)
+int sys_ls(const char *pathname)
 {
     DIR dir;
     FILINFO fno;
@@ -263,4 +263,14 @@ int sys_list(const char *pathname)
     return 0;
 }
               
+int sys_rm(const char *pathname)
+{
+    printk("I am rm\n"); 
+    return 0;
+}
 
+int sys_touch(const char *pathname)
+{
+    printk("I am touch\n"); 
+    return 0;
+}

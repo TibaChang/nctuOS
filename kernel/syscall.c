@@ -140,8 +140,14 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
   case SYS_unlink:
 		retVal = sys_unlink(a1);
     	break;
-  case SYS_list:
-		retVal = sys_list(a1);
+  case SYS_ls:
+		retVal = sys_ls(a1);
+		break;
+  case SYS_rm:
+		retVal = sys_rm(a1);
+		break;
+  case SYS_touch:
+		retVal = sys_touch(a1);
 		break;
   }
 	return retVal;
