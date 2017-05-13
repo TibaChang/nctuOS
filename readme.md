@@ -5,4 +5,6 @@ A tiny OS that used for 2017 OSDI course in National Chiao Tung University, Comp
 
 This OS only supports x86
 
-Please refer to branches
+Please refer to branches for more details.
+
+Student:Chang Jia-Rung
